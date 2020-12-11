@@ -1,9 +1,9 @@
 package trace
 
 import (
-	"brick/pkg/env"
-	"brick/pkg/log"
-	"brick/pkg/util"
+	"github.com/zdao-pro/sky_blue/pkg/env"
+	"github.com/zdao-pro/sky_blue/pkg/log"
+	"github.com/zdao-pro/sky_blue/pkg/util"
 
 	"os"
 

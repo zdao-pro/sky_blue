@@ -1,8 +1,8 @@
 package apollo
 
 import (
-	"brick/pkg/env"
-	"brick/pkg/peach"
+	"github.com/zdao-pro/sky_blue/pkg/env"
+	"github.com/zdao-pro/sky_blue/pkg/peach"
 	"fmt"
 	"os"
 

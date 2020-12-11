@@ -1,8 +1,8 @@
 package peach
 
 import (
-	"brick/pkg/peach"
-	"brick/pkg/peach/apollo"
+	"github.com/zdao-pro/sky_blue/pkg/peach"
+	"github.com/zdao-pro/sky_blue/pkg/peach/apollo"
 	"fmt"
 	"testing"
 )

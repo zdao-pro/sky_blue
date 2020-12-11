@@ -1,4 +1,4 @@
-module brick
+module github.com/zdao-pro/sky_blue
 
 go 1.15
 

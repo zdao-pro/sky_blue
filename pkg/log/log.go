@@ -1,9 +1,10 @@
 package log
 
 import (
-	"brick/pkg/env"
 	"context"
 	"fmt"
+
+	"github.com/zdao-pro/sky_blue/pkg/env"
 )
 
 var (
