@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	"brick/pkg/net/trace"
+	"github.com/zdao-pro/sky_blue/pkg/net/trace"
 
 	"github.com/gin-gonic/gin"
 	"github.com/opentracing/opentracing-go"

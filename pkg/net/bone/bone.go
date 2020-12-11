@@ -1,7 +1,7 @@
 package bone
 
 import (
-	"brick/pkg/net/bone/middleware"
+	"github.com/zdao-pro/sky_blue/pkg/net/bone/middleware"
 
 	"github.com/gin-gonic/gin"
 )

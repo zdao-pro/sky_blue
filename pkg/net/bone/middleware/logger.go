@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"time"
 
-	"brick/pkg/log"
+	"github.com/zdao-pro/sky_blue/pkg/log"
 
 	"github.com/gin-gonic/gin"
 )

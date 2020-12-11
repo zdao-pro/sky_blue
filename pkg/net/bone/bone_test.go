@@ -1,7 +1,7 @@
 package bone
 
 import (
-	"brick/pkg/log"
+	"github.com/zdao-pro/sky_blue/pkg/log"
 	"testing"
 
 	"github.com/gin-gonic/gin"
