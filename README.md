@@ -1,2 +1,1 @@
 # sky_blue
-golang
