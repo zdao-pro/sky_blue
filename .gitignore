@@ -1,0 +1,14 @@
+# idea ignore
+.idea/
+*.ipr
+*.iml
+*.iws
+.vscode/
+
+# temp ignore
+*.log
+*.cache
+*.diff
+*.exe
+*.swp
+*.tmp
