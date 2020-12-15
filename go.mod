@@ -13,4 +13,5 @@ require (
 	github.com/openzipkin/zipkin-go v0.2.5
 	github.com/pkg/errors v0.8.1
 	github.com/shima-park/agollo v1.2.7
+	github.com/stretchr/testify v1.6.1
 )
