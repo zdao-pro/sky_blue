@@ -1,14 +1,15 @@
 package peach
 
 import (
-	"github.com/zdao-pro/sky_blue/pkg/peach"
-	"github.com/zdao-pro/sky_blue/pkg/peach/apollo"
 	"fmt"
 	"testing"
+
+	"github.com/zdao-pro/sky_blue/pkg/peach"
+	_ "github.com/zdao-pro/sky_blue/pkg/peach/apollo"
 )
 
 func TestApollo(t *testing.T) {
-	peach.Init("/", apollo.PeachDriverApollo)
-	a, _ := peach.Get("test").String()
+	peach.Init(peach.PeachDriverApollo, "zdao_backend.sky_blue")
+	a, _ := peach.Get("name").String()
 	fmt.Println(a)
 }
