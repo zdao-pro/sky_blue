@@ -10,6 +10,6 @@ import (
 
 func TestApollo(t *testing.T) {
 	peach.Init(peach.PeachDriverApollo, "zdao_backend.sky_blue")
-	a, _ := peach.Get("name").String()
+	a, _ := peach.Get("test.yaml").String()
 	fmt.Println(a)
 }
