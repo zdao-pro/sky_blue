@@ -1,6 +1,6 @@
-package apollo
+package peach
 
 const (
-	//PeachDriverApollo ...
+	//PeachDriverApollo
 	PeachDriverApollo = "apollo"
 )

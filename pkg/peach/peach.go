@@ -17,31 +17,18 @@ func init() {
 }
 
 //Init 初始化配置中心
-func Init(configPath string, args ...interface{}) error {
-	if "" != configPath {
-		confPath = configPath
+func Init(driverName string, args ...interface{}) error {
+	driver, err := GetDriver(driverName)
+	if err != nil {
+		panic(err)
 	}
 
-	if "" == confPath {
-		return ErrInitConfigException
+	var ok error
+	DefaultClient, ok = driver.New(args...)
+
+	if ok != nil {
+		return nil
 	}
-
-	driverName, ok := args[0].(string)
-
-	if ok {
-		driver, err := GetDriver(driverName)
-		if err != nil {
-			return err
-		}
-
-		var ok error
-		DefaultClient, ok = driver.New()
-
-		if ok != nil {
-			return nil
-		}
-	}
-
 	return nil
 }
 

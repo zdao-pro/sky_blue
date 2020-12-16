@@ -2,6 +2,8 @@ package peach
 
 import (
 	"errors"
+
+	yaml "gopkg.in/yaml.v2"
 )
 
 // ErrNotExist value key not exist.
@@ -104,4 +106,13 @@ func (v *Value) Raw() (string, error) {
 		return "", ErrNotExist
 	}
 	return v.raw, nil
+}
+
+// UnmarshalYAML unmarshal yaml to struct.
+func (v *Value) UnmarshalYAML(dst interface{}) error {
+	text, err := v.Raw()
+	if err != nil {
+		return err
+	}
+	return yaml.Unmarshal([]byte(text), dst)
 }

@@ -4,5 +4,5 @@ package peach
 // each remote config center driver must do
 // 1. implements `New` method
 type Driver interface {
-	New() (Client, error)
+	New(args ...interface{}) (Client, error)
 }

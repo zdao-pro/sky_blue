@@ -1,10 +1,11 @@
 package apollo
 
 import (
-	"github.com/zdao-pro/sky_blue/pkg/env"
-	"github.com/zdao-pro/sky_blue/pkg/peach"
+	"errors"
 	"fmt"
 	"os"
+
+	"github.com/zdao-pro/sky_blue/pkg/peach"
 
 	"github.com/shima-park/agollo"
 )
@@ -14,24 +15,34 @@ var (
 )
 
 func init() {
-	appid := env.GetAppID()
-	configServerURL := os.Getenv("ConfigServerURL")
-	nameSpace := os.Getenv("NameSpace")
-
-	apolloConfig = &Config{
-		configServerURL: configServerURL,
-		appid:           appid,
-		nameSpace:       nameSpace,
-	}
-	fmt.Println(apolloConfig)
-
+	/*
+		export APOLLO_META_ADDR=118.178.140.41:58079
+		export APOLLO_APP_ID=backend_server
+	*/
 	peach.RegistDriver("apollo", &appoloDriver{})
 }
 
 type appoloDriver struct {
 }
 
-func (ad *appoloDriver) New() (peach.Client, error) {
+func (ad *appoloDriver) New(args ...interface{}) (peach.Client, error) {
+	configServerURL := os.Getenv("APOLLO_META_ADDR")
+	if "" == configServerURL {
+		return nil, errors.New("missing APOLLO_META_ADDR")
+	}
+	appid := os.Getenv("APOLLO_APP_ID")
+	if "" == appid {
+		return nil, errors.New("missing APOLLO_APP_ID")
+	}
+	nameSpace, ok := args[0].(string)
+	if !ok {
+		return nil, errors.New("missing nameSpace")
+	}
+	apolloConfig = &Config{
+		configServerURL: configServerURL,
+		appid:           appid,
+		nameSpace:       nameSpace,
+	}
 	apolloClientObj, err := newApolloClient(apolloConfig)
 	if nil != err {
 		return nil, fmt.Errorf("paladin: unknown appoloDriver (forgotten register?)")
@@ -58,7 +69,7 @@ func newApolloClient(c *Config) (peach.Client, error) {
 	errorCh := a.Start()
 
 	if errorCh != nil {
-		fmt.Println("Start failed.......")
+		// fmt.Println("Start failed.......")
 	}
 
 	if nil != err {
