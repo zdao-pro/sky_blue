@@ -21,9 +21,9 @@ var (
 type Config struct {
 	// Active number of items allocated by the pool at a given time.
 	// When zero, there is no limit on the number of items in the pool.
-	Active int
+	Active int `yaml:"active"`
 	// Idle number of idle items in the pool.
-	Idle int
+	Idle int `yaml:"idle"`
 	// Close items after remaining item for this duration. If the value
 	// is zero, then item items are not closed. Applications should set
 	// the timeout to a value less than the server's timeout.

@@ -11,14 +11,14 @@ import (
 
 // Config mysql config.
 type Config struct {
-	DSN          string        // write data source name.
-	ReadDSN      []string      // read data source name.
-	Active       int           // pool
-	Idle         int           // pool
-	IdleTimeout  time.Duration // connect max life time.
-	QueryTimeout time.Duration // query sql timeout
-	ExecTimeout  time.Duration // execute sql timeout
-	TranTimeout  time.Duration // transaction sql timeout
+	DSN          string        `yaml:"DSN"`          // write data source name.
+	ReadDSN      []string      `yaml:"ReadDSN"`      // read data source name.
+	Active       int           `yaml:"Active"`       // pool
+	Idle         int           `yaml:"Idle"`         // pool
+	IdleTimeout  time.Duration `yaml:"IdleTimeout"`  // connect max life time.
+	QueryTimeout time.Duration `yaml:"QueryTimeout"` // query sql timeout
+	ExecTimeout  time.Duration `yaml:"ExecTimeout"`  // execute sql timeout
+	TranTimeout  time.Duration `yaml:"TranTimeout"`  // transaction sql timeout
 }
 
 // NewMySQL new db and retry connection when has error.

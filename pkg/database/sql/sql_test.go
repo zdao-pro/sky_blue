@@ -2,12 +2,14 @@ package sql
 
 import (
 	"context"
+	"fmt"
 	"testing"
 	"time"
 
-	"github.com/zdao-pro/sky_blue/pkg/log"
-
 	"github.com/stretchr/testify/assert"
+	"github.com/zdao-pro/sky_blue/pkg/log"
+	"github.com/zdao-pro/sky_blue/pkg/peach"
+	_ "github.com/zdao-pro/sky_blue/pkg/peach/apollo"
 )
 
 func TestParseAddrDSN(t *testing.T) {
@@ -21,19 +23,24 @@ func TestParseAddrDSN(t *testing.T) {
 	})
 }
 
+type testConfig struct {
+	DSN          string        `yaml:"DSN"`          // write data source name.
+	ReadDSN      []string      `yaml:"ReadDSN"`      // read data source name.
+	Active       int           `yaml:"Active"`       // pool
+	Idle         int           `yaml:"Idle"`         // pool
+	IdleTimeout  time.Duration `yaml:"IdleTimeout"`  // connect max life time.
+	QueryTimeout time.Duration `yaml:"QueryTimeout"` // query sql timeout
+	ExecTimeout  time.Duration `yaml:"ExecTimeout"`  // execute sql timeout
+	TranTimeout  time.Duration `yaml:"TranTimeout"`  // transaction sql timeout
+}
+
 func TestPing(t *testing.T) {
 	log.Init(nil)
-	c := &Config{
-		DSN:          "test:test@tcp(127.0.0.1:3306)/test?timeout=5s&readTimeout=5s&writeTimeout=5s&parseTime=true&loc=Local&charset=utf8",
-		ReadDSN:      []string{"test:test@tcp(127.0.0.1:3306)/test?timeout=5s&readTimeout=5s&writeTimeout=5s&parseTime=true&loc=Local&charset=utf8"},
-		Active:       10,
-		Idle:         10,
-		IdleTimeout:  100 * time.Second,
-		QueryTimeout: 1 * time.Second,
-		ExecTimeout:  1 * time.Second,
-		TranTimeout:  1 * time.Second,
-	}
-	db := NewMySQL(c)
+	peach.Init(peach.PeachDriverApollo, "zdao_backend.sky_blue")
+	var c Config
+	peach.Get("mysql_test.yaml").UnmarshalYAML(&c)
+	fmt.Println(c)
+	db := NewMySQL(&c)
 	if db == nil {
 		log.Warn("error")
 	}
@@ -46,17 +53,11 @@ func TestPing(t *testing.T) {
 
 func TestInsert(t *testing.T) {
 	log.Init(nil)
-	c := &Config{
-		DSN:          "test:test@tcp(127.0.0.1:3306)/test?timeout=5s&readTimeout=5s&writeTimeout=5s&parseTime=true&loc=Local&charset=utf8",
-		ReadDSN:      []string{"test:test@tcp(127.0.0.1:3306)/test?timeout=5s&readTimeout=5s&writeTimeout=5s&parseTime=true&loc=Local&charset=utf8"},
-		Active:       10,
-		Idle:         10,
-		IdleTimeout:  100 * time.Second,
-		QueryTimeout: 1 * time.Second,
-		ExecTimeout:  1 * time.Second,
-		TranTimeout:  1 * time.Second,
-	}
-	db := NewMySQL(c)
+	peach.Init(peach.PeachDriverApollo, "zdao_backend.sky_blue")
+	var c Config
+	peach.Get("mysql_test.yaml").UnmarshalYAML(&c)
+	fmt.Println(c)
+	db := NewMySQL(&c)
 	if db == nil {
 		log.Warn("error")
 	}
@@ -66,7 +67,7 @@ func TestInsert(t *testing.T) {
 		log.Warn("ping error")
 	}
 
-	_, err = db.Exec(context.Background(), "insert into user_info set name = ?,age = ?", "name", 23)
+	_, err = db.Exec(context.Background(), "insert into user_info set name = ?,age = ?", "name", 423)
 	if nil != err {
 		log.Error(err.Error())
 	}
