@@ -31,7 +31,6 @@ peach 是一个config SDK客户端，包括了remote、file(开发中)几个抽�
 ```go
 import (
 	"fmt"
-	"testing"
 
     "github.com/zdao-pro/sky_blue/pkg/peach"
     // 使用apollo需要引入apollo包,实现自动注册驱动
