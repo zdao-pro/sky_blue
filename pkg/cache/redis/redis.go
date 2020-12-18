@@ -41,6 +41,33 @@ type Config struct {
 	SlowLog      time.Duration
 }
 
+// NewConfig ..
+type NewConfig struct {
+	// Active number of items allocated by the pool at a given time.
+	// When zero, there is no limit on the number of items in the pool.
+	Active int `yaml:"active"`
+	// Idle number of idle items in the pool.
+	Idle int `yaml:"idle"`
+	// Close items after remaining item for this duration. If the value
+	// is zero, then item items are not closed. Applications should set
+	// the timeout to a value less than the server's timeout.
+	IdleTimeout time.Duration `yaml:"idleTimeout"`
+	// If WaitTimeout is set and the pool is at the Active limit, then Get() waits WatiTimeout
+	// until a item to be returned to the pool before returning.
+	WaitTimeout time.Duration `yaml:"waitTimeout"`
+	// If WaitTimeout is not set, then Wait effects.
+	// if Wait is set true, then wait until ctx timeout, or default flase and return directly.
+	Wait         bool          `yaml:"wait"`
+	Name         string        `yaml:"name"`
+	Proto        string        `yaml:"proto"`
+	Addr         string        `yaml:"addr"`
+	Auth         string        `yaml:"auth"`
+	DialTimeout  time.Duration `yaml:"dialTimeout"`
+	ReadTimeout  time.Duration `yaml:"readTimeout"`
+	WriteTimeout time.Duration `yaml:"writeTimeout"`
+	SlowLog      time.Duration `yaml:"slowLog"`
+}
+
 // Redis ..
 type Redis struct {
 	pool *Pool
@@ -52,6 +79,32 @@ func NewRedis(c *Config, options ...DialOption) *Redis {
 	return &Redis{
 		pool: NewPool(c, options...),
 		conf: c,
+	}
+}
+
+//NewRedisClient ..
+func NewRedisClient(c *NewConfig, options ...DialOption) *Redis {
+	poolConfig := &pool.Config{
+		Active:      c.Active,
+		Idle:        c.Idle,
+		IdleTimeout: c.IdleTimeout,
+		WaitTimeout: c.WaitTimeout,
+	}
+	redisConfig := Config{
+		Config:       poolConfig,
+		Name:         c.Name,
+		Proto:        c.Proto,
+		Addr:         c.Addr,
+		Auth:         c.Auth,
+		DialTimeout:  c.DialTimeout,
+		ReadTimeout:  c.ReadTimeout,
+		WriteTimeout: c.WriteTimeout,
+		SlowLog:      c.SlowLog,
+	}
+	redisConfig.Wait = c.Wait
+	return &Redis{
+		pool: NewPool(&redisConfig, options...),
+		conf: &redisConfig,
 	}
 }
 
