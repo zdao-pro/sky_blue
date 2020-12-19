@@ -199,10 +199,10 @@ func TestNewRedis(t *testing.T) {
 
 func TestRedis_Do(t *testing.T) {
 	r := NewRedis(testConfig)
-	r.Do(context.TODO(), "FLUSHDB")
+	r.Do(context.TODO(), 0, "FLUSHDB")
 
 	for _, cmd := range testRedisCommands {
-		actual, err := r.Do(context.TODO(), cmd.args[0].(string), cmd.args[1:]...)
+		actual, err := r.Do(context.TODO(), 0, cmd.args[0].(string), cmd.args[1:]...)
 		if err != nil {
 			t.Errorf("Do(%v) returned error %v", cmd.args, err)
 			continue
@@ -293,7 +293,7 @@ func BenchmarkRedisDoPing(b *testing.B) {
 	defer r.Close()
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		if _, err := r.Do(context.Background(), "PING"); err != nil {
+		if _, err := r.Do(context.Background(), 0, "PING"); err != nil {
 			b.Fatal(err)
 		}
 	}
@@ -304,7 +304,7 @@ func BenchmarkRedisDoSET(b *testing.B) {
 	defer r.Close()
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		if _, err := r.Do(context.Background(), "SET", "a", "b"); err != nil {
+		if _, err := r.Do(context.Background(), 0, "SET", "a", "b"); err != nil {
 			b.Fatal(err)
 		}
 	}
@@ -313,10 +313,10 @@ func BenchmarkRedisDoSET(b *testing.B) {
 func BenchmarkRedisDoGET(b *testing.B) {
 	r := NewRedis(testConfig)
 	defer r.Close()
-	r.Do(context.Background(), "SET", "a", "b")
+	r.Do(context.Background(), 0, "SET", "a", "b")
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		if _, err := r.Do(context.Background(), "GET", "b"); err != nil {
+		if _, err := r.Do(context.Background(), 0, "GET", "b"); err != nil {
 			b.Fatal(err)
 		}
 	}

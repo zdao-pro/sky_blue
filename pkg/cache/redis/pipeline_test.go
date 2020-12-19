@@ -26,7 +26,7 @@ func TestRedis_Pipeline(t *testing.T) {
 	}
 
 	r := NewRedis(conf)
-	r.Do(context.TODO(), "FLUSHDB")
+	r.Do(context.TODO(), 0, "FLUSHDB")
 
 	p := r.Pipeline()
 
@@ -81,7 +81,7 @@ func BenchmarkRedisPipelineExec(b *testing.B) {
 	r := NewRedis(testConfig)
 	defer r.Close()
 
-	r.Do(context.TODO(), "SET", "abcde", "fghiasdfasdf")
+	r.Do(context.TODO(), 0, "SET", "abcde", "fghiasdfasdf")
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {

@@ -1,0 +1,10 @@
+name : "demo"
+proto : "tcp"
+addr : "127.0.0.1:6379"
+idle : 10
+active : 10
+dialTimeout : 1000000000
+readTimeout : 1000000000
+writeTimeout : 1000000000
+idleTimeout : 1000000000
+slowLog: 1000000000

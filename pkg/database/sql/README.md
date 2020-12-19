@@ -49,3 +49,36 @@ func main() {
 ```
 
 #### 2. 配置文件使用方式
+```go
+import (
+	"context"
+	"time"
+
+	"github.com/zdao-pro/sky_blue/pkg/log"
+	"github.com/stretchr/testify/assert"
+	"github.com/zdao-pro/sky_blue/pkg/peach"
+	_ "github.com/zdao-pro/sky_blue/pkg/peach/apollo"
+)
+
+func main() {
+	log.Init(nil)
+	peach.Init(peach.PeachDriverApollo, "zdao_backend.sky_blue")
+	var c Config
+	peach.Get("mysql_test.yaml").UnmarshalYAML(&c)
+	fmt.Println(c)
+	db := NewMySQL(&c)
+	if db == nil {
+		log.Warn("error")
+	}
+
+	err := db.Ping(context.Background())
+	if err != nil {
+		log.Warn("ping error")
+	}
+
+	_, err = db.Exec(context.Background(), "insert into user_info set name = ?,age = ?", "name", 423)
+	if nil != err {
+		log.Error(err.Error())
+	}
+}
+```

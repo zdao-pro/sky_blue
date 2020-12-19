@@ -58,5 +58,5 @@ func TestApollo(t *testing.T) {
 	// }
 	r := redis.NewRedisClient(&c)
 	defer r.Close()
-	r.Do(context.Background(), "SET", "a", "c")
+	r.Do(context.Background(), 4, "SET", "a", "f")
 }
