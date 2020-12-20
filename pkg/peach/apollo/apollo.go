@@ -2,17 +2,19 @@ package apollo
 
 import (
 	"errors"
-	"fmt"
 	"os"
+	"strconv"
 
 	"github.com/zdao-pro/sky_blue/pkg/peach"
 
-	"github.com/shima-park/agollo"
+	apollo "github.com/philchia/agollo/v4"
 )
 
 var (
 	apolloConfig *Config
 )
+
+var nameSpaceList []string
 
 func init() {
 	/*
@@ -26,27 +28,41 @@ type appoloDriver struct {
 }
 
 func (ad *appoloDriver) New(args ...interface{}) (peach.Client, error) {
-	configServerURL := os.Getenv("APOLLO_META_ADDR")
-	if "" == configServerURL {
-		return nil, errors.New("missing APOLLO_META_ADDR")
-	}
-	appid := os.Getenv("APOLLO_APP_ID")
-	if "" == appid {
-		return nil, errors.New("missing APOLLO_APP_ID")
-	}
-	nameSpace, ok := args[0].(string)
+	nameSpaceArr, ok := args[0].([]string)
 	if !ok {
-		return nil, errors.New("missing nameSpace")
+		return nil, errors.New("missing nameSpace list")
 	}
-	apolloConfig = &Config{
-		configServerURL: configServerURL,
-		appid:           appid,
-		nameSpace:       nameSpace,
+
+	nameSpaceList = nameSpaceArr
+
+	cacheDir := os.Getenv("APOLLO_CACHE_DIR")
+	if "" == cacheDir {
+		cacheDir = "./"
 	}
-	apolloClientObj, err := newApolloClient(apolloConfig)
-	if nil != err {
-		return nil, fmt.Errorf("paladin: unknown appoloDriver (forgotten register?)")
+
+	client := apollo.NewClient(&apollo.Conf{
+		AppID:          os.Getenv("APOLLO_APP_ID"),
+		NameSpaceNames: nameSpaceList, // these namespaces will be subscribed at init
+		MetaAddr:       os.Getenv("APOLLO_META_ADDR"),
+		CacheDir:       cacheDir,
+	})
+
+	err := client.Start()
+	if err != nil {
+		panic(err)
 	}
+
+	apolloClientObj := ApoClient{}
+	apolloClientObj.client = client
+	apolloClientObj.values = new(peach.Map)
+
+	v, err := apolloClientObj.loadValues(nameSpaceList)
+	if err != nil {
+		panic(err)
+	}
+	apolloClientObj.values.Store(v)
+
+	// fmt.Println(apolloClientObj.values.Keys())
 
 	return apolloClientObj, nil
 }
@@ -58,48 +74,45 @@ type Config struct {
 	nameSpace       string
 }
 
-//newApolloClient 返回一个apollo配置中心
-func newApolloClient(c *Config) (peach.Client, error) {
-
-	a, err := agollo.New(c.configServerURL, c.appid, agollo.AutoFetchOnCacheMiss())
-	if err != nil {
-		return nil, err
-	}
-
-	errorCh := a.Start()
-
-	if errorCh != nil {
-		// fmt.Println("Start failed.......")
-	}
-
-	if nil != err {
-		panic(err)
-	}
-	apoloClientInstance := &ApoClient{}
-	apoloClientInstance.SetApollo(a)
-
-	return apoloClientInstance, nil
-}
-
 //ApoClient 实例化的apollo配置中心
 type ApoClient struct {
-	a agollo.Agollo
-}
-
-//SetApollo 设置apollo客户端
-func (ac *ApoClient) SetApollo(ap agollo.Agollo) {
-	ac.a = ap
+	client apollo.Client
+	values *peach.Map
 }
 
 //Get 获取NameSpace下key的值
-func (ac *ApoClient) Get(k string) *peach.Value {
-	v := ac.a.Get(k, agollo.WithNamespace(apolloConfig.nameSpace))
-	return peach.NewValue(v, v)
+func (ac ApoClient) Get(key string) *peach.Value {
+	return ac.values.Get(key)
 }
 
-//GetKey 获取NameSpace下key的值
-func (ac *ApoClient) GetKey(key string) string {
-	k := ac.a.Get(key, agollo.WithNamespace(apolloConfig.nameSpace))
-	fmt.Println(k)
-	return k
+// loadValues load values from apollo namespaces to values
+func (ac ApoClient) loadValues(nameSpaceList []string) (values map[string]*peach.Value, err error) {
+	values = make(map[string]*peach.Value)
+	for _, nameSpace := range nameSpaceList {
+		keys := ac.client.GetAllKeys(apollo.WithNamespace(nameSpace))
+		for _, k := range keys {
+			if values[k], err = ac.loadValue(k, nameSpace); err != nil {
+				return
+			}
+		}
+	}
+	return
+}
+
+// loadValue load value from apollo namespace content to value
+func (ac ApoClient) loadValue(key, nameSpace string) (*peach.Value, error) {
+	content := ac.client.GetString(key, apollo.WithNamespace(nameSpace))
+	i, err := strconv.ParseInt(content, 0, 64)
+	if err == nil {
+		return peach.NewValue(i, content), nil
+	}
+	f, err := strconv.ParseFloat(content, 64)
+	if err == nil {
+		return peach.NewValue(f, content), nil
+	}
+	b, err := strconv.ParseBool(content)
+	if err == nil {
+		return peach.NewValue(b, content), nil
+	}
+	return peach.NewValue(content, content), nil
 }

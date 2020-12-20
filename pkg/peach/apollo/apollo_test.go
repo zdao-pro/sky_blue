@@ -6,16 +6,12 @@ import (
 )
 
 func TestEnv(t *testing.T) {
-	var d appoloDriver = appoloDriver{}
-	c, err := d.New("zdao_backend.sky_blue")
+	ad := appoloDriver{}
+	ac, err := ad.New([]string{"zdao_backend.sky_blue", "zdao_backend.common"})
 	if nil != err {
-		fmt.Print("vss")
+		panic(err)
 	}
 
-	fmt.Println(c)
-	v := c.Get("name")
-	if nil == v {
-		fmt.Print("v")
-	}
-	fmt.Print(v.String())
+	v := ac.Get("test_int")
+	fmt.Print(v.Int())
 }

@@ -11,6 +11,7 @@ require (
 	github.com/opentracing/opentracing-go v1.2.0
 	github.com/openzipkin-contrib/zipkin-go-opentracing v0.4.5
 	github.com/openzipkin/zipkin-go v0.2.5
+	github.com/philchia/agollo/v4 v4.1.1
 	github.com/pkg/errors v0.8.1
 	github.com/shima-park/agollo v1.2.7
 	github.com/stretchr/testify v1.6.1

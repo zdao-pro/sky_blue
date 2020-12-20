@@ -1,6 +1,7 @@
 package peach
 
 import (
+	"encoding/json"
 	"errors"
 
 	yaml "gopkg.in/yaml.v2"
@@ -115,4 +116,13 @@ func (v *Value) UnmarshalYAML(dst interface{}) error {
 		return err
 	}
 	return yaml.Unmarshal([]byte(text), dst)
+}
+
+// UnmarshalJSON unmarhsal json to struct.
+func (v *Value) UnmarshalJSON(dst interface{}) error {
+	text, err := v.Raw()
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal([]byte(text), dst)
 }
