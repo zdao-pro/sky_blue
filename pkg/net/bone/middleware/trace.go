@@ -3,8 +3,8 @@ package middleware
 import (
 	"github.com/zdao-pro/sky_blue/pkg/net/trace"
 
-	"github.com/gin-gonic/gin"
 	"github.com/opentracing/opentracing-go"
+	"github.com/zdao-pro/sky_blue/pkg/net/http/gin"
 )
 
 //GetTracer ...

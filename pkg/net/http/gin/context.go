@@ -78,6 +78,9 @@ type Context struct {
 	// SameSite allows a server to define a cookie attribute making it impossible for
 	// the browser to send this cookie along with cross-site requests.
 	sameSite http.SameSite
+
+	// login userID
+	UserID uint64
 }
 
 /************************************/
@@ -1127,4 +1130,9 @@ func (c *Context) Value(key interface{}) interface{} {
 		return val
 	}
 	return nil
+}
+
+// GetUserID 获取user_id
+func (c *Context) GetUserID() (userID uint64) {
+	return c.UserID
 }

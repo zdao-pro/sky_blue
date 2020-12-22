@@ -140,7 +140,14 @@ func tryToSetValue(value reflect.Value, field reflect.StructField, setter setter
 func setByForm(value reflect.Value, field reflect.StructField, form map[string][]string, tagValue string, opt setOptions) (isSetted bool, err error) {
 	vs, ok := form[tagValue]
 	if !ok && !opt.isDefaultExists {
+		if "true" == field.Tag.Get("need") {
+			return false, errors.New("parm mising:" + tagValue)
+		}
 		return false, nil
+	}
+
+	if "" == vs[0] && "true" == field.Tag.Get("need") {
+		return false, errors.New("parm mising:" + tagValue)
 	}
 
 	switch value.Kind() {
