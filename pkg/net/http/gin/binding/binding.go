@@ -23,6 +23,12 @@ const (
 	MIMEYAML              = "application/x-yaml"
 )
 
+var (
+	//INTMAX ..
+	INTMAX = int(^uint(0) >> 1)
+	INTMIN = ^INTMAX
+)
+
 // Binding describes the interface which needs to be implemented for binding the
 // data present in the request such as JSON request body, query parameters or
 // the form POST.

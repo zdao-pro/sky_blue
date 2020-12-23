@@ -7,6 +7,7 @@ package binding
 import (
 	"errors"
 	"fmt"
+	"math"
 	"reflect"
 	"regexp"
 	"strconv"
@@ -124,6 +125,10 @@ type setOptions struct {
 	isLimitLength   bool
 	isPatternRegexp bool
 	pattern         string
+	gtInt           int64
+	ltInt           int64
+	intFlag         bool
+	intEqualFlag    bool
 }
 
 func tryToSetValue(value reflect.Value, field reflect.StructField, setter setter, tag string) (bool, error) {
@@ -170,6 +175,41 @@ func tryToSetValue(value reflect.Value, field reflect.StructField, setter setter
 		setOpt.isPatternRegexp = true
 		setOpt.regexp = patternMap[k]
 		setOpt.pattern = k
+	}
+
+	gt, gtOk := field.Tag.Lookup("gt")
+	lt, ltOk := field.Tag.Lookup("lt")
+	ge, geOk := field.Tag.Lookup("ge")
+	le, leOk := field.Tag.Lookup("le")
+
+	if gtOk || ltOk {
+		setOpt.intFlag = true
+		if v, err := strconv.ParseInt(gt, 10, 64); nil == err {
+			setOpt.gtInt = v
+		} else {
+			setOpt.gtInt = math.MinInt64
+		}
+		if v, err := strconv.ParseInt(lt, 10, 64); nil == err {
+			setOpt.ltInt = v
+		} else {
+			setOpt.ltInt = math.MaxInt64
+		}
+
+	}
+
+	if geOk || leOk {
+		setOpt.intFlag = true
+		setOpt.intEqualFlag = true
+		if v, err := strconv.ParseInt(ge, 10, 64); nil == err {
+			setOpt.gtInt = v
+		} else {
+			setOpt.gtInt = math.MinInt64
+		}
+		if v, err := strconv.ParseInt(le, 10, 64); nil == err {
+			setOpt.ltInt = v
+		} else {
+			setOpt.ltInt = math.MaxInt64
+		}
 	}
 
 	if k, ok := field.Tag.Lookup("length"); ok {
@@ -231,6 +271,22 @@ func setByForm(value reflect.Value, field reflect.StructField, form map[string][
 
 		if true == opt.isAssert && opt.assert != val {
 			return false, fmt.Errorf("the param %s assert error", tagValue)
+		}
+
+		if true == opt.intFlag {
+			v, err := strconv.ParseInt(val, 10, 64)
+			if err != nil {
+				return false, err
+			}
+			if true == opt.intEqualFlag {
+				if !(v >= opt.gtInt && v <= opt.ltInt) {
+					return false, fmt.Errorf("the param %s cannot >= %d <= %d", tagValue, opt.gtInt, opt.ltInt)
+				}
+			} else {
+				if !(v > opt.gtInt && v < opt.ltInt) {
+					return false, fmt.Errorf("the param %s cannot > %d < %d", tagValue, opt.gtInt, opt.ltInt)
+				}
+			}
 		}
 
 		if true == opt.isRegexp || true == opt.isPatternRegexp {
