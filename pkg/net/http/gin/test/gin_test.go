@@ -3,7 +3,6 @@ package gin
 import (
 	"fmt"
 	"net/http"
-	"reflect"
 	"regexp"
 	"testing"
 	"time"
@@ -18,7 +17,12 @@ var Server *gin.Engine
 type param struct {
 	A int       `form:"a" need:"true" message:"a参数缺失"`
 	B bool      `form:"b"`
-	C string    `form:"c" need:"true" default:"c" regexp:"\\d+"`
+	C string    `form:"c" need:"true" default:"c" regexp:"^\\d+$"`
+	D string    `form:"d" need:"true" assert:"sunjin"`
+	E string    `form:"e" need:"true" length:"4"`
+	F string    `form:"f" need:"true" pattern:"email"`
+	H string    `form:"h" need:"true" pattern:"mobile"`
+	G string    `form:"g" need:"true" pattern:"common"`
 	T time.Time `form:"t" need:"true" default:"now" time_format:"unix"`
 }
 
@@ -35,7 +39,7 @@ func TestGin(t *testing.T) {
 		fmt.Println(p)
 		c.AbortWithStatus(http.StatusOK)
 	})
-	//Server.Run()
+	Server.Run()
 }
 
 type user struct {
@@ -43,17 +47,27 @@ type user struct {
 	b bool `from:"sun"`
 }
 
+const (
+	EmailRegexpStr  = `^[a-zA-Z0-9_-]+@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)+$`
+	PhoneRegexpStr  = `(^13|14|15|17|18\d{9}$)|(^201|165|195|166|167|168|191|198|199\d{8}$)`
+	CommonRegexpStr = `^[a-zA-Z0-9_]+$`
+)
+
 func TestReflect(t *testing.T) {
-	var u user
-	v := reflect.ValueOf(u)
-	tValue := reflect.TypeOf(u)
-	for i := 0; i < v.NumField(); i++ {
-		t := tValue.Field(i)
-		fmt.Println(t.Tag.Get("regexp"))
-	}
-	b, err := regexp.MatchString("\\d+", "123")
+	// var u user
+	// v := reflect.ValueOf(u)
+	// tValue := reflect.TypeOf(u)
+	// for i := 0; i < v.NumField(); i++ {
+	// 	t := tValue.Field(i)
+	// 	fmt.Println(t.Tag.Get("regexp"))
+	// }
+	// b, err := regexp.MatchString(EmailRegexpStr, "1543510543@intsig.net")
+	// b, err := regexp.MatchString(PhoneRegexpStr, "20121065085")
+	// b, err := regexp.MatchString(CommonRegexpStr, "20121065085@")
+	r, err := regexp.Compile(CommonRegexpStr)
 	if nil != err {
 		fmt.Println(err.Error())
 	}
+	b := r.MatchString("34434")
 	fmt.Println(b)
 }

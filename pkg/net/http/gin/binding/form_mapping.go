@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -44,7 +45,11 @@ var _ setter = formSource(nil)
 
 // TrySet tries to set a value by request's form source (like map[string][]string)
 func (form formSource) TrySet(value reflect.Value, field reflect.StructField, tagValue string, opt setOptions) (isSetted bool, err error) {
-	return setByForm(value, field, form, tagValue, opt)
+	isSetOk, err := setByForm(value, field, form, tagValue, opt)
+	if nil != err && "" != opt.message {
+		return isSetOk, fmt.Errorf(opt.message)
+	}
+	return isSetOk, err
 }
 
 func mappingByPtr(ptr interface{}, setter setter, tag string) error {
@@ -111,7 +116,14 @@ type setOptions struct {
 	defaultValue    string
 	isNeed          bool //参数是否必需
 	regexp          string
-	isRegexp        bool //是否需要正则匹配
+	isRegexp        bool   //是否需要正则匹配
+	message         string //指定的错误信息
+	assert          string
+	isAssert        bool
+	length          int
+	isLimitLength   bool
+	isPatternRegexp bool
+	pattern         string
 }
 
 func tryToSetValue(value reflect.Value, field reflect.StructField, setter setter, tag string) (bool, error) {
@@ -130,10 +142,10 @@ func tryToSetValue(value reflect.Value, field reflect.StructField, setter setter
 
 	if opt == "" {
 	}
-	defaultValue := field.Tag.Get("default")
-	if "" != defaultValue {
+
+	if k, ok := field.Tag.Lookup("default"); ok {
 		setOpt.isDefaultExists = true
-		setOpt.defaultValue = defaultValue
+		setOpt.defaultValue = k
 	}
 
 	if "true" == field.Tag.Get("need") {
@@ -143,6 +155,28 @@ func tryToSetValue(value reflect.Value, field reflect.StructField, setter setter
 	if k, ok := field.Tag.Lookup("regexp"); ok {
 		setOpt.regexp = k
 		setOpt.isRegexp = true
+	}
+
+	if k, ok := field.Tag.Lookup("message"); ok {
+		setOpt.message = k
+	}
+
+	if k, ok := field.Tag.Lookup("assert"); ok {
+		setOpt.isAssert = true
+		setOpt.assert = k
+	}
+
+	if k, ok := field.Tag.Lookup("pattern"); ok {
+		setOpt.isPatternRegexp = true
+		setOpt.regexp = patternMap[k]
+		setOpt.pattern = k
+	}
+
+	if k, ok := field.Tag.Lookup("length"); ok {
+		if l, err := strconv.ParseUint(k, 10, 16); nil == err {
+			setOpt.isLimitLength = true
+			setOpt.length = int(l)
+		}
 	}
 
 	// var opt string
@@ -189,6 +223,29 @@ func setByForm(value reflect.Value, field reflect.StructField, form map[string][
 
 		if len(vs) > 0 {
 			val = vs[0]
+		}
+
+		if true == opt.isLimitLength && len(val) != opt.length {
+			return false, fmt.Errorf("the length of %s length is equal %d", tagValue, opt.length)
+		}
+
+		if true == opt.isAssert && opt.assert != val {
+			return false, fmt.Errorf("the param %s assert error", tagValue)
+		}
+
+		if true == opt.isRegexp || true == opt.isPatternRegexp {
+			//正则匹配
+			r, err := regexp.Compile(opt.regexp)
+			if nil != err {
+				return false, err
+			}
+			b := r.MatchString(val)
+			if true != b {
+				if true == opt.isPatternRegexp {
+					return false, fmt.Errorf("the param %s cannot match %s", tagValue, opt.pattern)
+				}
+				return false, fmt.Errorf("regexp match %s is error", tagValue)
+			}
 		}
 		return true, setWithProperType(val, value, field)
 	}

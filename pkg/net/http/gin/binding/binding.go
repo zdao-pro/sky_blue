@@ -83,6 +83,22 @@ var (
 	Header        = headerBinding{}
 )
 
+// 相关正则匹配字符串
+const (
+	//EmailRegexpStr
+	EmailRegexpStr  = `^[a-zA-Z0-9_-]+@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)+$`
+	PhoneRegexpStr  = `(^13|14|15|17|18\d{9}$)|(^201|165|195|166|167|168|191|198|199\d{8}$)`
+	CommonRegexpStr = `^[a-zA-Z0-9_]+$`
+)
+
+var (
+	patternMap = map[string]string{
+		"email":  EmailRegexpStr,
+		"mobile": PhoneRegexpStr,
+		"common": CommonRegexpStr,
+	}
+)
+
 // Default returns the appropriate Binding instance based on the HTTP method
 // and the content type.
 func Default(method, contentType string) Binding {
