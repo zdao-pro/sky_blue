@@ -23,6 +23,7 @@ func mapUri(ptr interface{}, m map[string][]string) error {
 }
 
 func mapForm(ptr interface{}, form map[string][]string) error {
+	// fmt.Println("form:", form)
 	return mapFormByTag(ptr, form, "form")
 }
 
@@ -106,8 +107,11 @@ func mapping(value reflect.Value, field reflect.StructField, setter setter, tag 
 }
 
 type setOptions struct {
-	isDefaultExists bool
+	isDefaultExists bool //是否有默认值
 	defaultValue    string
+	isNeed          bool //参数是否必需
+	regexp          string
+	isRegexp        bool //是否需要正则匹配
 }
 
 func tryToSetValue(value reflect.Value, field reflect.StructField, setter setter, tag string) (bool, error) {
@@ -115,8 +119,8 @@ func tryToSetValue(value reflect.Value, field reflect.StructField, setter setter
 	var setOpt setOptions
 
 	tagValue = field.Tag.Get(tag)
-	tagValue, opts := head(tagValue, ",")
-
+	// fmt.Println("etagValue:" + tagValue + "tag:" + tag)
+	tagValue, opt := head(tagValue, ",")
 	if tagValue == "" { // default value is FieldName
 		tagValue = field.Name
 	}
@@ -124,30 +128,43 @@ func tryToSetValue(value reflect.Value, field reflect.StructField, setter setter
 		return false, nil
 	}
 
-	var opt string
-	for len(opts) > 0 {
-		opt, opts = head(opts, ",")
-
-		if k, v := head(opt, "="); k == "default" {
-			setOpt.isDefaultExists = true
-			setOpt.defaultValue = v
-		}
+	if opt == "" {
 	}
+	defaultValue := field.Tag.Get("default")
+	if "" != defaultValue {
+		setOpt.isDefaultExists = true
+		setOpt.defaultValue = defaultValue
+	}
+
+	if "true" == field.Tag.Get("need") {
+		setOpt.isNeed = true
+	}
+
+	if k, ok := field.Tag.Lookup("regexp"); ok {
+		setOpt.regexp = k
+		setOpt.isRegexp = true
+	}
+
+	// var opt string
+	// for len(opts) > 0 {
+	// 	opt, opts = head(opts, ",")
+
+	// 	if k, v := head(opt, "="); k == "default" {
+	// 		setOpt.isDefaultExists = true
+	// 		setOpt.defaultValue = v
+	// 	}
+	// }
 
 	return setter.TrySet(value, field, tagValue, setOpt)
 }
 
 func setByForm(value reflect.Value, field reflect.StructField, form map[string][]string, tagValue string, opt setOptions) (isSetted bool, err error) {
 	vs, ok := form[tagValue]
-	if !ok && !opt.isDefaultExists {
-		if "true" == field.Tag.Get("need") {
-			return false, errors.New("parm mising:" + tagValue)
+	if (!ok || "" == vs[0]) && !opt.isDefaultExists {
+		if true == opt.isNeed {
+			return false, fmt.Errorf("parm %v is mising", tagValue)
 		}
 		return false, nil
-	}
-
-	if "" == vs[0] && "true" == field.Tag.Get("need") {
-		return false, errors.New("parm mising:" + tagValue)
 	}
 
 	switch value.Kind() {
@@ -166,7 +183,7 @@ func setByForm(value reflect.Value, field reflect.StructField, form map[string][
 		return true, setArray(vs, value, field)
 	default:
 		var val string
-		if !ok {
+		if !ok || "" == vs[0] {
 			val = opt.defaultValue
 		}
 
@@ -272,7 +289,12 @@ func setFloatField(val string, bitSize int, field reflect.Value) error {
 func setTimeField(val string, structField reflect.StructField, value reflect.Value) error {
 	timeFormat := structField.Tag.Get("time_format")
 	if timeFormat == "" {
-		timeFormat = time.RFC3339
+		timeFormat = "unixnano"
+	}
+
+	if val == "now" {
+		value.Set(reflect.ValueOf(time.Now()))
+		return nil
 	}
 
 	switch tf := strings.ToLower(timeFormat); tf {
@@ -284,6 +306,7 @@ func setTimeField(val string, structField reflect.StructField, value reflect.Val
 
 		d := time.Duration(1)
 		if tf == "unixnano" {
+			tv = tv * 1000000
 			d = time.Second
 		}
 
