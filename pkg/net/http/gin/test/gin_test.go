@@ -25,6 +25,8 @@ type param struct {
 	G string    `form:"g" need:"true" pattern:"common"`
 	I int       `form:"i" need:"true" gt:"67" lt:"344"`
 	J int       `form:"j" need:"true" ge:"64" le:"145"`
+	K []int     `form:"k" need:"true" split:","`
+	P string    `form:"p" need:"true" split:","`
 	T time.Time `form:"t" need:"true" default:"now" time_format:"unix"`
 }
 

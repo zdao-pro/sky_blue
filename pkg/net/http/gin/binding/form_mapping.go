@@ -129,6 +129,7 @@ type setOptions struct {
 	ltInt           int64
 	intFlag         bool
 	intEqualFlag    bool
+	split           string
 }
 
 func tryToSetValue(value reflect.Value, field reflect.StructField, setter setter, tag string) (bool, error) {
@@ -175,6 +176,15 @@ func tryToSetValue(value reflect.Value, field reflect.StructField, setter setter
 		setOpt.isPatternRegexp = true
 		setOpt.regexp = patternMap[k]
 		setOpt.pattern = k
+	}
+
+	if reflect.Slice == value.Kind() {
+		k, ok := field.Tag.Lookup("split")
+		if ok {
+			setOpt.split = k
+		} else {
+			setOpt.split = ","
+		}
 	}
 
 	gt, gtOk := field.Tag.Lookup("gt")
@@ -245,6 +255,8 @@ func setByForm(value reflect.Value, field reflect.StructField, form map[string][
 	case reflect.Slice:
 		if !ok {
 			vs = []string{opt.defaultValue}
+		} else {
+			vs = strings.Split(vs[0], opt.split)
 		}
 		return true, setSlice(vs, value, field)
 	case reflect.Array:
