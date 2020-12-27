@@ -8,7 +8,7 @@ import (
 	"reflect"
 	"sync"
 
-	"github.com/go-playground/validator/v10"
+	"github.com/zdao-pro/sky_blue/pkg/common/validator"
 )
 
 type defaultValidator struct {
@@ -46,6 +46,6 @@ func (v *defaultValidator) Engine() interface{} {
 func (v *defaultValidator) lazyinit() {
 	v.once.Do(func() {
 		v.validate = validator.New()
-		v.validate.SetTagName("binding")
+		// v.validate.SetTagName("binding")
 	})
 }

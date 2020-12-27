@@ -14,20 +14,33 @@ import (
 //Server is a gin Engine
 var Server *gin.Engine
 
+// type param struct {
+// 	A int       `form:"a" need:"true" message:"a参数缺失"`
+// 	B bool      `form:"b" need:"false"`
+// 	C string    `form:"c" need:"true" default:"c" regexp:"^\\d+$"`
+// 	D string    `form:"d" need:"true" assert:"sunjin"`
+// 	E string    `form:"e" need:"true" length:"4"`
+// 	F string    `form:"f" need:"true" pattern:"email"`
+// 	H string    `form:"h" need:"true" pattern:"mobile"`
+// 	G string    `form:"g" need:"true" pattern:"common"`
+// 	I int       `form:"i" need:"true" gt:"67" lt:"344"`
+// 	J int       `form:"j" need:"true" ge:"64" le:"145"`
+// 	K []int     `form:"k" need:"true" split:","`
+// 	P string    `form:"p" need:"true" split:","`
+// 	T time.Time `form:"t" need:"true" default:"now" time_format:"unix"`
+// }
+
 type param struct {
-	A int       `form:"a" need:"true" message:"a参数缺失"`
-	B bool      `form:"b" need:"false"`
-	C string    `form:"c" need:"true" default:"c" regexp:"^\\d+$"`
-	D string    `form:"d" need:"true" assert:"sunjin"`
-	E string    `form:"e" need:"true" length:"4"`
-	F string    `form:"f" need:"true" pattern:"email"`
-	H string    `form:"h" need:"true" pattern:"mobile"`
-	G string    `form:"g" need:"true" pattern:"common"`
-	I int       `form:"i" need:"true" gt:"67" lt:"344"`
-	J int       `form:"j" need:"true" ge:"64" le:"145"`
-	K []int     `form:"k" need:"true" split:","`
-	P string    `form:"p" need:"true" split:","`
-	T time.Time `form:"t" need:"true" default:"now" time_format:"unix"`
+	A int       `form:"a" message:"a参数缺失"`
+	B string    `form:"b" default:"true"`
+	C string    `form:"c" default:"4453" regexp:"^\\d+$"`
+	I int       `form:"i" validate:"max=20"`
+	K []int     `form:"k" split:","`
+	T time.Time `form:"t" default:"now" time_format:"unix"`
+}
+
+type s struct {
+	Foo string `json:"foo"`
 }
 
 //Init http server
@@ -36,10 +49,16 @@ func TestGin(t *testing.T) {
 	Server = gin.Default()
 	Server.GET("/ping", func(c *gin.Context) {
 		var p param
+
 		err := c.ShouldBindQuery(&p)
 		if nil != err {
 			fmt.Println(err.Error())
 		}
+		// var b s
+		// err := c.ShouldBindJSON(&b)
+		// if nil != err {
+		// 	fmt.Println(err.Error())
+		// }
 		fmt.Println(p)
 		c.AbortWithStatus(http.StatusOK)
 	})

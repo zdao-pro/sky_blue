@@ -7,9 +7,7 @@ package binding
 import (
 	"errors"
 	"fmt"
-	"math"
 	"reflect"
-	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -115,20 +113,9 @@ func mapping(value reflect.Value, field reflect.StructField, setter setter, tag 
 type setOptions struct {
 	isDefaultExists bool //是否有默认值
 	defaultValue    string
-	isNeed          bool //参数是否必需
 	regexp          string
 	isRegexp        bool   //是否需要正则匹配
 	message         string //指定的错误信息
-	assert          string
-	isAssert        bool
-	length          int
-	isLimitLength   bool
-	isPatternRegexp bool
-	pattern         string
-	gtInt           int64
-	ltInt           int64
-	intFlag         bool
-	intEqualFlag    bool
 	split           string
 }
 
@@ -154,10 +141,6 @@ func tryToSetValue(value reflect.Value, field reflect.StructField, setter setter
 		setOpt.defaultValue = k
 	}
 
-	if "true" == field.Tag.Get("need") {
-		setOpt.isNeed = true
-	}
-
 	if k, ok := field.Tag.Lookup("regexp"); ok {
 		setOpt.regexp = k
 		setOpt.isRegexp = true
@@ -165,17 +148,6 @@ func tryToSetValue(value reflect.Value, field reflect.StructField, setter setter
 
 	if k, ok := field.Tag.Lookup("message"); ok {
 		setOpt.message = k
-	}
-
-	if k, ok := field.Tag.Lookup("assert"); ok {
-		setOpt.isAssert = true
-		setOpt.assert = k
-	}
-
-	if k, ok := field.Tag.Lookup("pattern"); ok {
-		setOpt.isPatternRegexp = true
-		setOpt.regexp = patternMap[k]
-		setOpt.pattern = k
 	}
 
 	if reflect.Slice == value.Kind() {
@@ -187,67 +159,12 @@ func tryToSetValue(value reflect.Value, field reflect.StructField, setter setter
 		}
 	}
 
-	gt, gtOk := field.Tag.Lookup("gt")
-	lt, ltOk := field.Tag.Lookup("lt")
-	ge, geOk := field.Tag.Lookup("ge")
-	le, leOk := field.Tag.Lookup("le")
-
-	if gtOk || ltOk {
-		setOpt.intFlag = true
-		if v, err := strconv.ParseInt(gt, 10, 64); nil == err {
-			setOpt.gtInt = v
-		} else {
-			setOpt.gtInt = math.MinInt64
-		}
-		if v, err := strconv.ParseInt(lt, 10, 64); nil == err {
-			setOpt.ltInt = v
-		} else {
-			setOpt.ltInt = math.MaxInt64
-		}
-
-	}
-
-	if geOk || leOk {
-		setOpt.intFlag = true
-		setOpt.intEqualFlag = true
-		if v, err := strconv.ParseInt(ge, 10, 64); nil == err {
-			setOpt.gtInt = v
-		} else {
-			setOpt.gtInt = math.MinInt64
-		}
-		if v, err := strconv.ParseInt(le, 10, 64); nil == err {
-			setOpt.ltInt = v
-		} else {
-			setOpt.ltInt = math.MaxInt64
-		}
-	}
-
-	if k, ok := field.Tag.Lookup("length"); ok {
-		if l, err := strconv.ParseUint(k, 10, 16); nil == err {
-			setOpt.isLimitLength = true
-			setOpt.length = int(l)
-		}
-	}
-
-	// var opt string
-	// for len(opts) > 0 {
-	// 	opt, opts = head(opts, ",")
-
-	// 	if k, v := head(opt, "="); k == "default" {
-	// 		setOpt.isDefaultExists = true
-	// 		setOpt.defaultValue = v
-	// 	}
-	// }
-
 	return setter.TrySet(value, field, tagValue, setOpt)
 }
 
 func setByForm(value reflect.Value, field reflect.StructField, form map[string][]string, tagValue string, opt setOptions) (isSetted bool, err error) {
 	vs, ok := form[tagValue]
 	if (!ok || "" == vs[0]) && !opt.isDefaultExists {
-		if true == opt.isNeed {
-			return false, fmt.Errorf("parm %v is mising", tagValue)
-		}
 		return false, nil
 	}
 
@@ -271,50 +188,10 @@ func setByForm(value reflect.Value, field reflect.StructField, form map[string][
 		var val string
 		if !ok || "" == vs[0] {
 			val = opt.defaultValue
-		}
-
-		if len(vs) > 0 {
+		} else {
 			val = vs[0]
 		}
 
-		if true == opt.isLimitLength && len(val) != opt.length {
-			return false, fmt.Errorf("the length of %s length is equal %d", tagValue, opt.length)
-		}
-
-		if true == opt.isAssert && opt.assert != val {
-			return false, fmt.Errorf("the param %s assert error", tagValue)
-		}
-
-		if true == opt.intFlag {
-			v, err := strconv.ParseInt(val, 10, 64)
-			if err != nil {
-				return false, err
-			}
-			if true == opt.intEqualFlag {
-				if !(v >= opt.gtInt && v <= opt.ltInt) {
-					return false, fmt.Errorf("the param %s cannot >= %d <= %d", tagValue, opt.gtInt, opt.ltInt)
-				}
-			} else {
-				if !(v > opt.gtInt && v < opt.ltInt) {
-					return false, fmt.Errorf("the param %s cannot > %d < %d", tagValue, opt.gtInt, opt.ltInt)
-				}
-			}
-		}
-
-		if true == opt.isRegexp || true == opt.isPatternRegexp {
-			//正则匹配
-			r, err := regexp.Compile(opt.regexp)
-			if nil != err {
-				return false, err
-			}
-			b := r.MatchString(val)
-			if true != b {
-				if true == opt.isPatternRegexp {
-					return false, fmt.Errorf("the param %s cannot match %s", tagValue, opt.pattern)
-				}
-				return false, fmt.Errorf("regexp match %s is error", tagValue)
-			}
-		}
 		return true, setWithProperType(val, value, field)
 	}
 }

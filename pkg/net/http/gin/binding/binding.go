@@ -6,7 +6,9 @@
 
 package binding
 
-import "net/http"
+import (
+	"net/http"
+)
 
 // Content-Type MIME of the most common data formats.
 const (
@@ -131,8 +133,10 @@ func Default(method, contentType string) Binding {
 }
 
 func validate(obj interface{}) error {
+
 	if Validator == nil {
 		return nil
 	}
+
 	return Validator.ValidateStruct(obj)
 }
