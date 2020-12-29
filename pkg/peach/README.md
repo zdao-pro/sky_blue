@@ -44,7 +44,7 @@ func main() {
          peach.PeachDriverApollo : 配置驱动名,
          zdao_backend.sky_blue : apollo namespace,apollo需要指定namespace
     */
-    peach.Init(peach.PeachDriverApollo, "zdao_backend.sky_blue")
+    peach.Init(peach.PeachDriverApollo, []string{"zdao_backend.sky_blue"})
     // Get用来获取key的值(value)
 	a, _ := peach.Get("test.yaml").String()
 	fmt.Println(a)

@@ -1,8 +1,13 @@
 package sql
 
 import (
+	"context"
+	"errors"
+	"fmt"
 	"testing"
 
+	"github.com/zdao-pro/sky_blue/pkg/log"
+	"github.com/zdao-pro/sky_blue/pkg/peach"
 	_ "github.com/zdao-pro/sky_blue/pkg/peach/apollo"
 )
 
@@ -45,27 +50,73 @@ import (
 // 	}
 // }
 
-// func TestInsert(t *testing.T) {
-// 	log.Init(nil)
-// 	peach.Init(peach.PeachDriverApollo, "zdao_backend.sky_blue")
-// 	var c Config
-// 	peach.Get("mysql_test.yaml").UnmarshalYAML(&c)
-// 	fmt.Println(c)
-// 	db := NewMySQL(&c)
-// 	if db == nil {
-// 		log.Warn("error")
-// 	}
+type userInfo struct {
+	Model
+	ID   int    `orm:"id"`
+	Name string `orm:"name"`
+	Age  int    `orm:"age"`
+}
 
-// 	err := db.Ping(context.Background())
-// 	if err != nil {
-// 		log.Warn("ping error")
-// 	}
+func (u *userInfo) Insert(name string, age int) (err error) {
+	_, err = u.Exec(context.Background(), "insert into user_info set name = ?,age = ?", name, age)
+	return
+}
 
-// 	_, err = db.Exec(context.Background(), "insert into user_info set name = ?,age = ?", "name", 423)
-// 	if nil != err {
-// 		log.Error(err.Error())
-// 	}
-// }
+func (u *userInfo) QueryUserByID(id int) error {
+	// rs := u.QueryRow(context.Background(), "select id,name,age from user_info where id = ?", id)
+	// if nil != rs {
+	// 	fmt.Println(rs)
+	// 	e := rs.Scan(&u.ID, &u.Name, &u.Age)
+	// 	if e != nil {
+	// 		fmt.Println(e.Error())
+	// 	}
+	// }
+	rs, err := u.Query(context.Background(), "select id,name,age from user_info where name = ?", "sun")
+	if nil != err {
+		log.Error(err.Error())
+		panic(err)
+	}
+	for rs.Next() {
+		if err := rs.Scan(&u.ID, &u.Name, &u.Age); nil != err {
+			panic(err)
+		}
+		log.Debug("hhh:%v", u)
+	}
+	return errors.New("cannot find row")
+}
+
+func TestInsert(t *testing.T) {
+	log.Init(nil)
+	peach.Init(peach.PeachDriverApollo, []string{"zdao_backend.sky_blue", "zdao_backend.common"})
+	var c Config
+	peach.Get("mysql_test.yaml").UnmarshalYAML(&c)
+	// fmt.Println(c)
+	db := NewMySQL(&c)
+	if db == nil {
+		log.Warn("error")
+	}
+	user := userInfo{
+		Model: NewModel(db),
+	}
+
+	err := user.Begin(context.Background())
+	if nil != err {
+		panic(err)
+	}
+	user.Insert("sun", 3)
+	// user.QueryUserByID(142)
+	fmt.Println(user)
+	user.Commit()
+	// err := db.Ping(context.Background())
+	// if err != nil {
+	// 	log.Warn("ping error")
+	// }
+
+	// _, err = db.Exec(context.Background(), "insert into user_info set name = ?,age = ?", "name", 423)
+	// if nil != err {
+	// 	log.Error(err.Error())
+	// }
+}
 
 type user struct {
 	ID   int    `orm:"id"`

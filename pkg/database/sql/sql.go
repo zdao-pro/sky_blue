@@ -642,7 +642,7 @@ func (tx *Tx) Stmt(stmt *Stmt) *Stmt {
 // The returned statement operates within the transaction and can no longer be
 // used once the transaction has been committed or rolled back.
 // To use an existing prepared statement on this transaction, see Tx.Stmt.
-func (tx *Tx) Prepare(query string) (*Stmt, error) {
+func (tx *Tx) Prepare(c context.Context, query string) (*Stmt, error) {
 	// if tx.t != nil {
 	// 	tx.t.SetTag(trace.String(trace.TagAnnotation, fmt.Sprintf("prepare %s", query)))
 	// }
