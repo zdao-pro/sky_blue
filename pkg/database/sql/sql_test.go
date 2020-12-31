@@ -2,10 +2,10 @@ package sql
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"testing"
 
+	"github.com/pkg/errors"
 	"github.com/zdao-pro/sky_blue/pkg/log"
 	"github.com/zdao-pro/sky_blue/pkg/peach"
 	_ "github.com/zdao-pro/sky_blue/pkg/peach/apollo"
@@ -71,26 +71,38 @@ func (u *userInfo) QueryUserByID(id int) error {
 	// 		fmt.Println(e.Error())
 	// 	}
 	// }
-	rs, err := u.Query(context.Background(), "select id,name,age from user_info where name = ?", "sun")
+	// rs, err := u.Query(context.Background(), "select id,name,age from user_info where name = ?", "sun")
+	// if nil != err {
+	// 	log.Error(err.Error())
+	// 	panic(err)
+	// }
+	// for rs.Next() {
+	// 	if err := rs.Scan(&u.ID, &u.Name, &u.Age); nil != err {
+	// 		panic(err)
+	// 	}
+	// 	log.Debug("hhh:%v", u)
+	// }
+	err := u.Select(context.Background(), u, "select name from user_info where name = ?", "sun")
 	if nil != err {
-		log.Error(err.Error())
 		panic(err)
-	}
-	for rs.Next() {
-		if err := rs.Scan(&u.ID, &u.Name, &u.Age); nil != err {
-			panic(err)
-		}
-		log.Debug("hhh:%v", u)
 	}
 	return errors.New("cannot find row")
 }
 
+type Man struct {
+	Id   int
+	Name string
+}
+
 func TestInsert(t *testing.T) {
+	// s1 := make([]Man, 0)
+	// getValue := reflect.TypeOf(s1)
+	// v := getValue.Elem()
+	// fmt.Println(v.NumField())
 	log.Init(nil)
 	peach.Init(peach.PeachDriverApollo, []string{"zdao_backend.sky_blue", "zdao_backend.common"})
 	var c Config
 	peach.Get("mysql_test.yaml").UnmarshalYAML(&c)
-	// fmt.Println(c)
 	db := NewMySQL(&c)
 	if db == nil {
 		log.Warn("error")
@@ -98,24 +110,8 @@ func TestInsert(t *testing.T) {
 	user := userInfo{
 		Model: NewModel(db),
 	}
-
-	err := user.Begin(context.Background())
-	if nil != err {
-		panic(err)
-	}
-	user.Insert("sun", 3)
-	// user.QueryUserByID(142)
+	user.QueryUserByID(142)
 	fmt.Println(user)
-	user.Commit()
-	// err := db.Ping(context.Background())
-	// if err != nil {
-	// 	log.Warn("ping error")
-	// }
-
-	// _, err = db.Exec(context.Background(), "insert into user_info set name = ?,age = ?", "name", 423)
-	// if nil != err {
-	// 	log.Error(err.Error())
-	// }
 }
 
 type user struct {
