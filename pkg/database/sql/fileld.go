@@ -84,6 +84,10 @@ func parseField(v reflect.Value) map[string]Field {
 		case reflect.Struct:
 			if f.FieldType.String() == "time.Time" {
 				f.DataType = Time
+				timeFormat := field.Tag.Get("time_format")
+				if timeFormat != "" {
+					f.TimeFormat = timeFormat
+				}
 			} else {
 				f.DataType = Struct
 			}

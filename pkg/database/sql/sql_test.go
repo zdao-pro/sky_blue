@@ -51,6 +51,11 @@ import (
 // 	}
 // }
 
+type Misc struct {
+	Email string `json:"email"`
+	Phone int    `json:"phone"`
+}
+
 type userInfo struct {
 	Model
 	ID         int16     `orm:"id"`
@@ -58,6 +63,8 @@ type userInfo struct {
 	Age        int       `orm:"age"`
 	Status     uint8     `orm:"status"`
 	RegistTime time.Time `orm:"regist_time"`
+	CreateTime time.Time `orm:"create_time" time_format:"unixmilli"`
+	MiscInfo   Misc      `orm:"misc"`
 }
 
 func (u *userInfo) Insert(name string, age int) (err error) {
@@ -85,7 +92,7 @@ func (u *userInfo) QueryUserByID(id int) error {
 	// 	}
 	// 	log.Debug("hhh:%v", u)
 	// }
-	err := u.Select(context.Background(), u, "select id,name,age,regist_time,status from user_info where name = ?", "sun")
+	err := u.Select(context.Background(), u, "select id,name,age,regist_time,status,create_time,misc from user_info where name = ?", "sun")
 	if nil != err {
 		panic(err)
 	}
