@@ -1,269 +1,186 @@
 package sql
 
-// convertAssignRows copies to dest the value in src, converting it if possible.
-// An error is returned if the copy would result in loss of information.
-// dest should be a pointer type. If rows is passed in, the rows will
-// be used as the parent for any cursor values converted from a
-// driver.Rows to a *Rows.
-// func convertBindRows(dest, src interface{}, rows *Rows) error {
-// 	// Common cases, without reflect.
-// 	switch s := src.(type) {
-// 	case string:
-// 		switch d := dest.(type) {
-// 		case *string:
-// 			if d == nil {
-// 				return errNilPtr
-// 			}
-// 			*d = s
-// 			return nil
-// 		case *[]byte:
-// 			if d == nil {
-// 				return errNilPtr
-// 			}
-// 			*d = []byte(s)
-// 			return nil
-// 		case *RawBytes:
-// 			if d == nil {
-// 				return errNilPtr
-// 			}
-// 			*d = append((*d)[:0], s...)
-// 			return nil
-// 		}
-// 	case []byte:
-// 		switch d := dest.(type) {
-// 		case *string:
-// 			if d == nil {
-// 				return errNilPtr
-// 			}
-// 			*d = string(s)
-// 			return nil
-// 		case *interface{}:
-// 			if d == nil {
-// 				return errNilPtr
-// 			}
-// 			*d = cloneBytes(s)
-// 			return nil
-// 		case *[]byte:
-// 			if d == nil {
-// 				return errNilPtr
-// 			}
-// 			*d = cloneBytes(s)
-// 			return nil
-// 		case *RawBytes:
-// 			if d == nil {
-// 				return errNilPtr
-// 			}
-// 			*d = s
-// 			return nil
-// 		}
-// 	case time.Time:
-// 		switch d := dest.(type) {
-// 		case *time.Time:
-// 			*d = s
-// 			return nil
-// 		case *string:
-// 			*d = s.Format(time.RFC3339Nano)
-// 			return nil
-// 		case *[]byte:
-// 			if d == nil {
-// 				return errNilPtr
-// 			}
-// 			*d = []byte(s.Format(time.RFC3339Nano))
-// 			return nil
-// 		case *RawBytes:
-// 			if d == nil {
-// 				return errNilPtr
-// 			}
-// 			*d = s.AppendFormat((*d)[:0], time.RFC3339Nano)
-// 			return nil
-// 		}
-// 	case decimalDecompose:
-// 		switch d := dest.(type) {
-// 		case decimalCompose:
-// 			return d.Compose(s.Decompose(nil))
-// 		}
-// 	case nil:
-// 		switch d := dest.(type) {
-// 		case *interface{}:
-// 			if d == nil {
-// 				return errNilPtr
-// 			}
-// 			*d = nil
-// 			return nil
-// 		case *[]byte:
-// 			if d == nil {
-// 				return errNilPtr
-// 			}
-// 			*d = nil
-// 			return nil
-// 		case *RawBytes:
-// 			if d == nil {
-// 				return errNilPtr
-// 			}
-// 			*d = nil
-// 			return nil
-// 		}
-// 	// The driver is returning a cursor the client may iterate over.
-// 	case driver.Rows:
-// 		switch d := dest.(type) {
-// 		case *Rows:
-// 			if d == nil {
-// 				return errNilPtr
-// 			}
-// 			if rows == nil {
-// 				return errors.New("invalid context to convert cursor rows, missing parent *Rows")
-// 			}
-// 			rows.closemu.Lock()
-// 			*d = Rows{
-// 				dc:          rows.dc,
-// 				releaseConn: func(error) {},
-// 				rowsi:       s,
-// 			}
-// 			// Chain the cancel function.
-// 			parentCancel := rows.cancel
-// 			rows.cancel = func() {
-// 				// When Rows.cancel is called, the closemu will be locked as well.
-// 				// So we can access rs.lasterr.
-// 				d.close(rows.lasterr)
-// 				if parentCancel != nil {
-// 					parentCancel()
-// 				}
-// 			}
-// 			rows.closemu.Unlock()
-// 			return nil
-// 		}
+import (
+	"fmt"
+	"reflect"
+	"strconv"
+	"time"
+)
+
+func convertStruct(a reflect.Value, vType reflect.Type, m map[string]interface{}, fieldMap map[string]Field) (err error) {
+	for i := 0; i < a.NumField(); i++ {
+		v := a.Field(i)
+		t := vType.Field(i)
+		name := t.Name
+		f, ok := fieldMap[name]
+		if !ok {
+			continue
+		}
+		vMap, ok := m[f.Name]
+		if !ok {
+			continue
+		}
+		convertFiled(f, vMap, v)
+	}
+	return
+}
+
+func convertFiled(f Field, src interface{}, value reflect.Value) (err error) {
+	fmt.Println("src:  ", src, " type:", f.FieldType)
+	switch src.(type) {
+	case string:
+		switch f.DataType {
+		case String:
+			value.SetString(src.(string))
+		case Bytes:
+			value.SetBytes([]byte(src.(string)))
+		}
+	case *string:
+		switch f.DataType {
+		case String:
+			value.SetString(*src.(*string))
+		case Bytes:
+			value.SetBytes([]byte(*src.(*string)))
+		}
+	case []byte:
+		switch f.DataType {
+		case String:
+			value.SetString(string(src.([]byte)))
+		case Bytes:
+			value.SetBytes(src.([]byte))
+		}
+	case time.Time:
+		switch f.DataType {
+		case Time:
+			value.Set(reflect.ValueOf(src))
+		}
+	case int, int8, int16, int32, int64:
+		switch f.DataType {
+		case Int:
+			value.SetInt(src.(int64))
+		}
+	case uint, uint8, uint16, uint32, uint64:
+		switch f.DataType {
+		case Uint:
+			value.SetUint(src.(uint64))
+		}
+	case float32, float64:
+		switch f.DataType {
+		case Float:
+			value.SetFloat(src.(float64))
+		}
+	case bool:
+		switch f.DataType {
+		case Bool:
+			value.SetBool(src.(bool))
+		}
+	}
+	return
+	// switch v.Kind(){
+	// case reflect.Int:
+	// 	return setIntField(val, 0, value)
+	// case reflect.Int8:
+	// 	return setIntField(val, 8, value)
+	// case reflect.Int16:
+	// 	return setIntField(val, 16, value)
+	// case reflect.Int32:
+	// 	return setIntField(val, 32, value)
+	// case reflect.Int64:
+	// 	switch value.Interface().(type) {
+	// 	case time.Duration:
+	// 		return setTimeDuration(val, value, field)
+	// 	}
+	// 	return setIntField(val, 64, value)
+	// case reflect.Uint:
+	// 	return setUintField(val, 0, value)
+	// case reflect.Uint8:
+	// 	return setUintField(val, 8, value)
+	// case reflect.Uint16:
+	// 	return setUintField(val, 16, value)
+	// case reflect.Uint32:
+	// 	return setUintField(val, 32, value)
+	// case reflect.Uint64:
+	// 	return setUintField(val, 64, value)
+	// case reflect.Bool:
+	// 	return setBoolField(val, value)
+	// case reflect.Float32:
+	// 	return setFloatField(val, 32, value)
+	// case reflect.Float64:
+	// 	return setFloatField(val, 64, value)
+	// case reflect.String:
+	// 	value.SetString(val)
+	// case reflect.Struct:
+	// case reflect.Map:
+	// 	return json.Unmarshal(bytesconv.StringToBytes(val), value.Addr().Interface())
+	// default:
+	// 	return errUnknownType
+	// }
+}
+
+func setIntField(val interface{}, bitSize int, field reflect.Value) (err error) {
+	s, ok := val.(string)
+	if ok {
+		intVal, err := strconv.ParseInt(s, 10, bitSize)
+		if err == nil {
+			field.SetInt(intVal)
+		}
+	}
+
+	v, ok := val.(int64)
+	if ok {
+		field.SetInt(int64(v))
+		return
+	}
+	return
+}
+
+// func setUintField(val interface{}, bitSize int, field reflect.Value) error {
+// 	v, ok := val.(uint)
+// 	if ok{
+// 		field.SetUint(v)
 // 	}
 
-// 	var sv reflect.Value
+// 	s := val.(string)
+// 	uintVal, err := strconv.ParseUint(s, 10, bitSize)
+// 	if err == nil {
+// 		field.SetUint(uintVal)
+// 	}
+// 	return err
+// }
 
-// 	switch d := dest.(type) {
-// 	case *string:
-// 		sv = reflect.ValueOf(src)
-// 		switch sv.Kind() {
-// 		case reflect.Bool,
-// 			reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
-// 			reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64,
-// 			reflect.Float32, reflect.Float64:
-// 			*d = asString(src)
-// 			return nil
-// 		}
-// 	case *[]byte:
-// 		sv = reflect.ValueOf(src)
-// 		if b, ok := asBytes(nil, sv); ok {
-// 			*d = b
-// 			return nil
-// 		}
-// 	case *RawBytes:
-// 		sv = reflect.ValueOf(src)
-// 		if b, ok := asBytes([]byte(*d)[:0], sv); ok {
-// 			*d = RawBytes(b)
-// 			return nil
-// 		}
-// 	case *bool:
-// 		bv, err := driver.Bool.ConvertValue(src)
-// 		if err == nil {
-// 			*d = bv.(bool)
-// 		}
+// func setBoolField(val string, field reflect.Value) error {
+// 	v, ok := val.(bool)
+// 	if ok{
+// 		field.SetBool(v)
+// 	}
+
+// 	s := val.(string)
+// 	boolVal, err := strconv.ParseBool(s)
+// 	if err == nil {
+// 		field.SetBool(boolVal)
+// 	}
+// 	return err
+// }
+
+// func setFloatField(val string, bitSize int, field reflect.Value) error {
+// 	v, ok := val.(uint)
+// 	if ok{
+// 		field.SetUint(v)
+// 	}
+
+// 	s := val.(string)
+// 	floatVal, err := strconv.ParseFloat(val, bitSize)
+// 	if err == nil {
+// 		field.SetFloat(floatVal)
+// 	}
+// 	return err
+// }
+
+// func setTimeDuration(val interface{}, value reflect.Value, field reflect.StructField) error {
+// 	d, err := time.ParseDuration(val)
+// 	if err != nil {
 // 		return err
-// 	case *interface{}:
-// 		*d = src
-// 		return nil
 // 	}
-
-// 	if scanner, ok := dest.(Scanner); ok {
-// 		return scanner.Scan(src)
-// 	}
-
-// 	dpv := reflect.ValueOf(dest)
-// 	if dpv.Kind() != reflect.Ptr {
-// 		return errors.New("destination not a pointer")
-// 	}
-// 	if dpv.IsNil() {
-// 		return errNilPtr
-// 	}
-
-// 	if !sv.IsValid() {
-// 		sv = reflect.ValueOf(src)
-// 	}
-
-// 	dv := reflect.Indirect(dpv)
-// 	if sv.IsValid() && sv.Type().AssignableTo(dv.Type()) {
-// 		switch b := src.(type) {
-// 		case []byte:
-// 			dv.Set(reflect.ValueOf(cloneBytes(b)))
-// 		default:
-// 			dv.Set(sv)
-// 		}
-// 		return nil
-// 	}
-
-// 	if dv.Kind() == sv.Kind() && sv.Type().ConvertibleTo(dv.Type()) {
-// 		dv.Set(sv.Convert(dv.Type()))
-// 		return nil
-// 	}
-
-// 	// The following conversions use a string value as an intermediate representation
-// 	// to convert between various numeric types.
-// 	//
-// 	// This also allows scanning into user defined types such as "type Int int64".
-// 	// For symmetry, also check for string destination types.
-// 	switch dv.Kind() {
-// 	case reflect.Ptr:
-// 		if src == nil {
-// 			dv.Set(reflect.Zero(dv.Type()))
-// 			return nil
-// 		}
-// 		dv.Set(reflect.New(dv.Type().Elem()))
-// 		return convertAssignRows(dv.Interface(), src, rows)
-// 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-// 		if src == nil {
-// 			return fmt.Errorf("converting NULL to %s is unsupported", dv.Kind())
-// 		}
-// 		s := asString(src)
-// 		i64, err := strconv.ParseInt(s, 10, dv.Type().Bits())
-// 		if err != nil {
-// 			err = strconvErr(err)
-// 			return fmt.Errorf("converting driver.Value type %T (%q) to a %s: %v", src, s, dv.Kind(), err)
-// 		}
-// 		dv.SetInt(i64)
-// 		return nil
-// 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-// 		if src == nil {
-// 			return fmt.Errorf("converting NULL to %s is unsupported", dv.Kind())
-// 		}
-// 		s := asString(src)
-// 		u64, err := strconv.ParseUint(s, 10, dv.Type().Bits())
-// 		if err != nil {
-// 			err = strconvErr(err)
-// 			return fmt.Errorf("converting driver.Value type %T (%q) to a %s: %v", src, s, dv.Kind(), err)
-// 		}
-// 		dv.SetUint(u64)
-// 		return nil
-// 	case reflect.Float32, reflect.Float64:
-// 		if src == nil {
-// 			return fmt.Errorf("converting NULL to %s is unsupported", dv.Kind())
-// 		}
-// 		s := asString(src)
-// 		f64, err := strconv.ParseFloat(s, dv.Type().Bits())
-// 		if err != nil {
-// 			err = strconvErr(err)
-// 			return fmt.Errorf("converting driver.Value type %T (%q) to a %s: %v", src, s, dv.Kind(), err)
-// 		}
-// 		dv.SetFloat(f64)
-// 		return nil
-// 	case reflect.String:
-// 		if src == nil {
-// 			return fmt.Errorf("converting NULL to %s is unsupported", dv.Kind())
-// 		}
-// 		switch v := src.(type) {
-// 		case string:
-// 			dv.SetString(v)
-// 			return nil
-// 		case []byte:
-// 			dv.SetString(string(v))
-// 			return nil
-// 		}
-// 	}
-
-// 	return fmt.Errorf("unsupported Scan, storing driver.Value type %T into type %T", src, dest)
+// 	value.Set(reflect.ValueOf(d))
+// 	return nil
 // }

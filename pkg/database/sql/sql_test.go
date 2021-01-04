@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/pkg/errors"
 	"github.com/zdao-pro/sky_blue/pkg/log"
@@ -52,9 +53,11 @@ import (
 
 type userInfo struct {
 	Model
-	ID   int    `orm:"id"`
-	Name string `orm:"name"`
-	Age  int    `orm:"age"`
+	ID         int16     `orm:"id"`
+	Name       string    `orm:"name"`
+	Age        int       `orm:"age"`
+	Status     uint8     `orm:"status"`
+	RegistTime time.Time `orm:"regist_time"`
 }
 
 func (u *userInfo) Insert(name string, age int) (err error) {
@@ -82,7 +85,7 @@ func (u *userInfo) QueryUserByID(id int) error {
 	// 	}
 	// 	log.Debug("hhh:%v", u)
 	// }
-	err := u.Select(context.Background(), u, "select name from user_info where name = ?", "sun")
+	err := u.Select(context.Background(), u, "select id,name,age,regist_time,status from user_info where name = ?", "sun")
 	if nil != err {
 		panic(err)
 	}

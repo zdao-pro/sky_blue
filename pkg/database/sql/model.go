@@ -11,7 +11,8 @@ import (
 
 var (
 	//ErrNoPtr ..
-	ErrNoPtr = errors.New("noptr")
+	ErrNoPtr    = errors.New("noptr")
+	ErrNoResult = errors.New("noResult")
 )
 
 //Model ..
@@ -104,133 +105,25 @@ func (m *Model) Select(c context.Context, dest interface{}, query string, args .
 		list = append(list, item)
 	}
 
+	if len(list) <= 0 {
+		err = ErrNoResult
+		return
+	}
+
+	// d := list[0]
+	// for k, v := range d {
+	// 	t := fmt.Sprintf("%T", v)
+	// 	fmt.Println("key:", k, "v:", v, "type:", t)
+	// }
+
 	if reflect.Struct == a.Kind() {
-		// convertFiled(a, list[0])
+		vType := a.Type()
+		fieldMap := parseField(a)
+		fmt.Println(fieldMap)
+		convertStruct(a, vType, list[0], fieldMap)
 	}
-	fmt.Println(list)
+
 	return
-}
-
-type setOption struct {
-	name       string
-	timeFormat string //
-}
-
-func convertFiled(v reflect.Value, val interface{}, set setOption) {
-	switch v.Kind(){
-	case reflect.Int:
-		return setIntField(val, 0, value)
-	case reflect.Int8:
-		return setIntField(val, 8, value)
-	case reflect.Int16:
-		return setIntField(val, 16, value)
-	case reflect.Int32:
-		return setIntField(val, 32, value)
-	case reflect.Int64:
-		switch value.Interface().(type) {
-		case time.Duration:
-			return setTimeDuration(val, value, field)
-		}
-		return setIntField(val, 64, value)
-	case reflect.Uint:
-		return setUintField(val, 0, value)
-	case reflect.Uint8:
-		return setUintField(val, 8, value)
-	case reflect.Uint16:
-		return setUintField(val, 16, value)
-	case reflect.Uint32:
-		return setUintField(val, 32, value)
-	case reflect.Uint64:
-		return setUintField(val, 64, value)
-	case reflect.Bool:
-		return setBoolField(val, value)
-	case reflect.Float32:
-		return setFloatField(val, 32, value)
-	case reflect.Float64:
-		return setFloatField(val, 64, value)
-	case reflect.String:
-		value.SetString(val)
-	case reflect.Struct:
-	case reflect.Map:
-		return json.Unmarshal(bytesconv.StringToBytes(val), value.Addr().Interface())
-	default:
-		return errUnknownType
-	}
-}
-
-func setIntField(val interface{}, bitSize int, field reflect.Value) error {
-	v, ok := val.(int)
-	if ok{
-		field.SetInt(v)
-	}
-
-	s := val.(string)
-	intVal, err := strconv.ParseInt(s, 10, bitSize)
-	if err == nil {
-		field.SetInt(intVal)
-	}
-	return err
-}
-
-func setUintField(val interface{}, bitSize int, field reflect.Value) error {
-	v, ok := val.(uint)
-	if ok{
-		field.SetUint(v)
-	}
-
-	s := val.(string)
-	uintVal, err := strconv.ParseUint(s, 10, bitSize)
-	if err == nil {
-		field.SetUint(uintVal)
-	}
-	return err
-}
-
-func setBoolField(val string, field reflect.Value) error {
-	v, ok := val.(bool)
-	if ok{
-		field.SetBool(v)
-	}
-
-	s := val.(string)
-	boolVal, err := strconv.ParseBool(s)
-	if err == nil {
-		field.SetBool(boolVal)
-	}
-	return err
-}
-
-func setFloatField(val string, bitSize int, field reflect.Value) error {
-	v, ok := val.(uint)
-	if ok{
-		field.SetUint(v)
-	}
-
-	s := val.(string)
-	floatVal, err := strconv.ParseFloat(val, bitSize)
-	if err == nil {
-		field.SetFloat(floatVal)
-	}
-	return err
-}
-
-func getSetOption(v reflect.Value, m map[string]interface{}) map[string]setOption {
-	tValue := v.Type()
-	for i := 0; i < v.NumField(); i++ {
-		field := tValue.Field(i)
-		setOpt := setOption{}
-
-		if k, ok := field.Tag.Lookup("orm"); ok {
-			setOpt.name = k
-		} else {
-			setOpt.name = field.Name
-		}
-		m[field.Name] = setOpt
-		// t := sf.Type
-		// switch t. {
-
-		// }
-	}
 }
 
 // Begin starts a transaction. The isolation level is dependent on the driver.
