@@ -65,6 +65,18 @@ func main() {
 ```
 
 #### 2. 配置文件使用方式
+> 配置文件:
+```
+DSN: "test:test@tcp(127.0.0.1:3306)/test?timeout=5s&readTimeout=5s&writeTimeout=5s&parseTime=true&loc=Local&charset=utf8"
+ReadDSN:
+  - "test:test@tcp(127.0.0.1:3306)/test?timeout=5s&readTimeout=5s&writeTimeout=5s&parseTime=true&loc=Local&charset=utf8"
+Active:       10
+Idle:         10
+IdleTimeout:  100
+QueryTimeout: 1
+ExecTimeout:  1
+TranTimeout:  1
+```
 ```go
 import (
 	"context"
