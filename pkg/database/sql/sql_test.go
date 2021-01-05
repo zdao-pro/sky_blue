@@ -56,8 +56,8 @@ type Misc struct {
 	Phone int    `json:"phone"`
 }
 
-type userInfo struct {
-	Model
+type UserInfo struct {
+	*Model
 	ID         int16     `orm:"id"`
 	Name       string    `orm:"name"`
 	Age        int       `orm:"age"`
@@ -67,35 +67,18 @@ type userInfo struct {
 	MiscInfo   Misc      `orm:"misc"`
 }
 
-func (u *userInfo) Insert(name string, age int) (err error) {
+func (u *UserInfo) Insert(name string, age int) (err error) {
 	_, err = u.Exec(context.Background(), "insert into user_info set name = ?,age = ?", name, age)
 	return
 }
 
-func (u *userInfo) QueryUserByID(id int) error {
-	// rs := u.QueryRow(context.Background(), "select id,name,age from user_info where id = ?", id)
-	// if nil != rs {
-	// 	fmt.Println(rs)
-	// 	e := rs.Scan(&u.ID, &u.Name, &u.Age)
-	// 	if e != nil {
-	// 		fmt.Println(e.Error())
-	// 	}
-	// }
-	// rs, err := u.Query(context.Background(), "select id,name,age from user_info where name = ?", "sun")
-	// if nil != err {
-	// 	log.Error(err.Error())
-	// 	panic(err)
-	// }
-	// for rs.Next() {
-	// 	if err := rs.Scan(&u.ID, &u.Name, &u.Age); nil != err {
-	// 		panic(err)
-	// 	}
-	// 	log.Debug("hhh:%v", u)
-	// }
-	err := u.Select(context.Background(), u, "select id,name,age,regist_time,status,create_time,misc from user_info where name = ?", "sun")
+func (u *UserInfo) QueryUserByID(id int) error {
+	list := make([]UserInfo, 0)
+	err := u.Select(context.Background(), &list, "select id,name,age,regist_time,status,create_time,misc from user_info where id = ?", id)
 	if nil != err {
 		panic(err)
 	}
+	fmt.Println(list)
 	return errors.New("cannot find row")
 }
 
@@ -117,10 +100,13 @@ func TestInsert(t *testing.T) {
 	if db == nil {
 		log.Warn("error")
 	}
-	user := userInfo{
+	user := UserInfo{
 		Model: NewModel(db),
 	}
-	user.QueryUserByID(142)
+	// user.Begin(context.Background())
+	// user.Insert("test", 50)
+	// user.Rollback()
+	user.QueryUserByID(145)
 	fmt.Println(user)
 }
 

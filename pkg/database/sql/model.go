@@ -11,7 +11,8 @@ import (
 
 var (
 	//ErrNoPtr ..
-	ErrNoPtr    = errors.New("noptr")
+	ErrNoPtr = errors.New("noptr")
+	//ErrNoResult ..
 	ErrNoResult = errors.New("noResult")
 )
 
@@ -22,8 +23,8 @@ type Model struct {
 }
 
 //NewModel ..
-func NewModel(db *DB) (md Model) {
-	md = Model{
+func NewModel(db *DB) (md *Model) {
+	md = &Model{
 		DB: db,
 	}
 	return
@@ -71,19 +72,19 @@ func (m *Model) Select(c context.Context, dest interface{}, query string, args .
 		return
 	}
 
-	v := reflect.ValueOf(dest)
-	kind := v.Kind()
+	rt := reflect.ValueOf(dest)
+	kind := rt.Kind()
 	//desc should be ptr
 	if kind != reflect.Ptr {
 		err = ErrNoPtr
 		return
 	}
 
-	a := v.Elem()
-	if reflect.Struct != a.Kind() {
-		err = errors.New("the type of dest is not allowed")
-		return
-	}
+	a := rt.Elem()
+	// if reflect.Struct != a.Kind() {
+	// 	err = errors.New("the type of dest is not allowed")
+	// 	return
+	// }
 
 	// convert the query result to the list of map
 	columns, _ := rs.Columns()
@@ -118,9 +119,21 @@ func (m *Model) Select(c context.Context, dest interface{}, query string, args .
 
 	if reflect.Struct == a.Kind() {
 		vType := a.Type()
-		fieldMap := parseField(a)
+		fieldMap := parseField(vType)
 		fmt.Println(fieldMap)
 		convertStruct(a, vType, list[0], fieldMap)
+	} else if reflect.Slice == a.Kind() {
+		vType := a.Type().Elem()
+		fieldMap := parseField(vType)
+		for _, data := range list {
+			v := reflect.New(vType).Elem()
+			convertStruct(v, vType, data, fieldMap)
+			a = reflect.Append(a, v)
+			// fmt.Println(a)
+		}
+
+		// rt := reflect.ValueOf(dest)
+		rt.Elem().Set(a)
 	}
 
 	return
@@ -140,7 +153,9 @@ func (m *Model) Rollback() (err error) {
 
 // Commit commits the transaction.
 func (m *Model) Commit() (err error) {
-	// fmt.Println(m.Tx)
-	err = m.Tx.Commit()
+	if m.Tx != nil {
+		fmt.Println("444444", m.Tx)
+		err = m.Tx.Commit()
+	}
 	return
 }

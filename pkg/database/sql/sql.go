@@ -549,7 +549,7 @@ func (s *Stmt) QueryRow(c context.Context, args ...interface{}) (row *Row) {
 // Commit commits the transaction.
 func (tx *Tx) Commit() (err error) {
 	err = tx.tx.Commit()
-	tx.cancel()
+	// tx.cancel()
 	tx.db.onBreaker(&err)
 	// if tx.t != nil {
 	// 	tx.t.Finish(&err)
@@ -563,7 +563,7 @@ func (tx *Tx) Commit() (err error) {
 // Rollback aborts the transaction.
 func (tx *Tx) Rollback() (err error) {
 	err = tx.tx.Rollback()
-	tx.cancel()
+	// tx.cancel()
 	tx.db.onBreaker(&err)
 	// if tx.t != nil {
 	// 	tx.t.Finish(&err)

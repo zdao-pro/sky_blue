@@ -2,7 +2,6 @@ package sql
 
 import (
 	"encoding/json"
-	"fmt"
 	"reflect"
 	"strconv"
 	"time"
@@ -27,7 +26,7 @@ func convertStruct(a reflect.Value, vType reflect.Type, m map[string]interface{}
 }
 
 func convertFiled(f Field, src interface{}, value reflect.Value) (err error) {
-	fmt.Println("src:  ", src, " type:", f.FieldType)
+	// fmt.Println("src:  ", src, " type:", f.FieldType)
 	switch src.(type) {
 	case string:
 		switch f.DataType {
@@ -41,6 +40,8 @@ func convertFiled(f Field, src interface{}, value reflect.Value) (err error) {
 			setUintField(src.(string), 64, value)
 		case Float:
 			setFloatField(src.(string), 64, value)
+		case Struct:
+			setStructField([]byte(src.(string)), value)
 		}
 	case *string:
 		switch f.DataType {
@@ -54,6 +55,8 @@ func convertFiled(f Field, src interface{}, value reflect.Value) (err error) {
 			setUintField(*src.(*string), 64, value)
 		case Float:
 			setFloatField(*src.(*string), 64, value)
+		case Struct:
+			setStructField([]byte(*src.(*string)), value)
 		}
 	case []byte:
 		switch f.DataType {
@@ -104,8 +107,8 @@ func convertFiled(f Field, src interface{}, value reflect.Value) (err error) {
 }
 
 func setStructField(body []byte, field reflect.Value) {
-	fmt.Println(string(body))
-	json.Unmarshal(body, field.Interface())
+	// fmt.Println(string(body))
+	json.Unmarshal(body, field.Addr().Interface())
 }
 func setTimeField(val interface{}, field reflect.Value, timeFormat string) {
 	var v int64
