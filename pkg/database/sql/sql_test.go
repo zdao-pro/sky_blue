@@ -6,7 +6,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/pkg/errors"
 	"github.com/zdao-pro/sky_blue/pkg/log"
 	"github.com/zdao-pro/sky_blue/pkg/peach"
 	_ "github.com/zdao-pro/sky_blue/pkg/peach/apollo"
@@ -73,13 +72,22 @@ func (u *UserInfo) Insert(name string, age int) (err error) {
 }
 
 func (u *UserInfo) QueryUserByID(id int) error {
-	list := make([]UserInfo, 0)
-	err := u.Select(context.Background(), &list, "select id,name,age,regist_time,status,create_time,misc from user_info where id = ?", id)
+	err := u.Select(context.Background(), u, "select id,name,age,regist_time,status,create_time,misc from user_info where id = ?", id)
 	if nil != err {
-		panic(err)
+		return err
 	}
-	fmt.Println(list)
-	return errors.New("cannot find row")
+	fmt.Println(u)
+	return nil
+}
+
+func (u *UserInfo) QueryUserByName(name string) (*[]UserInfo, error) {
+	list := make([]UserInfo, 0)
+	err := u.Select(context.Background(), &list, "select id,name,age,regist_time,status,create_time,misc from user_info where name = ?", name)
+	if nil != err {
+		return nil, err
+	}
+	// fmt.Println(list)
+	return &list, nil
 }
 
 type Man struct {
