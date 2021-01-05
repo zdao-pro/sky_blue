@@ -1,6 +1,7 @@
 package sql
 
 import (
+	"encoding/json"
 	"fmt"
 	"reflect"
 	"strconv"
@@ -66,6 +67,8 @@ func convertFiled(f Field, src interface{}, value reflect.Value) (err error) {
 			setUintField(string(src.([]byte)), 64, value)
 		case Float:
 			setFloatField(string(src.([]byte)), 64, value)
+		case Struct:
+			setStructField(src.([]byte), value)
 		}
 	case time.Time:
 		switch f.DataType {
@@ -98,47 +101,12 @@ func convertFiled(f Field, src interface{}, value reflect.Value) (err error) {
 		}
 	}
 	return
-	// switch v.Kind(){
-	// case reflect.Int:
-	// 	return setIntField(val, 0, value)
-	// case reflect.Int8:
-	// 	return setIntField(val, 8, value)
-	// case reflect.Int16:
-	// 	return setIntField(val, 16, value)
-	// case reflect.Int32:
-	// 	return setIntField(val, 32, value)
-	// case reflect.Int64:
-	// 	switch value.Interface().(type) {
-	// 	case time.Duration:
-	// 		return setTimeDuration(val, value, field)
-	// 	}
-	// 	return setIntField(val, 64, value)
-	// case reflect.Uint:
-	// 	return setUintField(val, 0, value)
-	// case reflect.Uint8:
-	// 	return setUintField(val, 8, value)
-	// case reflect.Uint16:
-	// 	return setUintField(val, 16, value)
-	// case reflect.Uint32:
-	// 	return setUintField(val, 32, value)
-	// case reflect.Uint64:
-	// 	return setUintField(val, 64, value)
-	// case reflect.Bool:
-	// 	return setBoolField(val, value)
-	// case reflect.Float32:
-	// 	return setFloatField(val, 32, value)
-	// case reflect.Float64:
-	// 	return setFloatField(val, 64, value)
-	// case reflect.String:
-	// 	value.SetString(val)
-	// case reflect.Struct:
-	// case reflect.Map:
-	// 	return json.Unmarshal(bytesconv.StringToBytes(val), value.Addr().Interface())
-	// default:
-	// 	return errUnknownType
-	// }
 }
 
+func setStructField(body []byte, field reflect.Value) {
+	fmt.Println(string(body))
+	json.Unmarshal(body, field.Interface())
+}
 func setTimeField(val interface{}, field reflect.Value, timeFormat string) {
 	var v int64
 	i, ok := val.(int64)
@@ -193,54 +161,3 @@ func setFloatField(val string, bitSize int, field reflect.Value) error {
 	}
 	return err
 }
-
-// func setUintField(val interface{}, bitSize int, field reflect.Value) error {
-// 	v, ok := val.(uint)
-// 	if ok{
-// 		field.SetUint(v)
-// 	}
-
-// 	s := val.(string)
-// 	uintVal, err := strconv.ParseUint(s, 10, bitSize)
-// 	if err == nil {
-// 		field.SetUint(uintVal)
-// 	}
-// 	return err
-// }
-
-// func setBoolField(val string, field reflect.Value) error {
-// 	v, ok := val.(bool)
-// 	if ok{
-// 		field.SetBool(v)
-// 	}
-
-// 	s := val.(string)
-// 	boolVal, err := strconv.ParseBool(s)
-// 	if err == nil {
-// 		field.SetBool(boolVal)
-// 	}
-// 	return err
-// }
-
-// func setFloatField(val string, bitSize int, field reflect.Value) error {
-// 	v, ok := val.(uint)
-// 	if ok{
-// 		field.SetUint(v)
-// 	}
-
-// 	s := val.(string)
-// 	floatVal, err := strconv.ParseFloat(val, bitSize)
-// 	if err == nil {
-// 		field.SetFloat(floatVal)
-// 	}
-// 	return err
-// }
-
-// func setTimeDuration(val interface{}, value reflect.Value, field reflect.StructField) error {
-// 	d, err := time.ParseDuration(val)
-// 	if err != nil {
-// 		return err
-// 	}
-// 	value.Set(reflect.ValueOf(d))
-// 	return nil
-// }
