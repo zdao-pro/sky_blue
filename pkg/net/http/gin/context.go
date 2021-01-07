@@ -20,6 +20,7 @@ import (
 	"time"
 
 	"github.com/gin-contrib/sse"
+	ecode "github.com/zdao-pro/sky_blue/pkg/ecode"
 	"github.com/zdao-pro/sky_blue/pkg/net/http/gin/binding"
 	"github.com/zdao-pro/sky_blue/pkg/net/http/gin/render"
 )
@@ -909,6 +910,30 @@ func (c *Context) JSONP(code int, obj interface{}) {
 // It also sets the Content-Type as "application/json".
 func (c *Context) JSON(code int, obj interface{}) {
 	c.Render(code, render.JSON{Data: obj})
+}
+
+// Exit serializes the given struct as JSON into the response body.
+// It also sets the Content-Type as "application/json".
+func (c *Context) Exit(code int, obj ...interface{}) {
+	resData := H{}
+	becode := ecode.Code(code)
+	if becode == ecode.OK {
+		resData["status"] = 1
+		resData["errcode"] = ""
+		code = http.StatusOK
+	} else {
+		resData["status"] = 0
+		resData["errcode"] = becode.Error()
+		code = http.StatusNotAcceptable
+	}
+	resData["message"] = becode.Message()
+	if 0 < len(obj) {
+		resData["data"] = obj[0]
+	}
+	c.Header("X-IS-Error-Code", resData["errcode"].(string))
+	c.Header("X-IS-Error-Msg", resData["message"].(string))
+	// fmt.Println(resData)
+	c.JSON(code, resData)
 }
 
 // AsciiJSON serializes the given struct as JSON into the response body with unicode to ASCII string.

@@ -2,7 +2,6 @@ package gin
 
 import (
 	"fmt"
-	"net/http"
 	"regexp"
 	"testing"
 	"time"
@@ -42,25 +41,36 @@ type param struct {
 type s struct {
 	Foo string `json:"foo"`
 }
+type ColorGroup struct {
+	ID     int
+	Name   string
+	Colors []string
+}
 
 //Init http server
 func TestGin(t *testing.T) {
 	log.Init(nil)
 	Server = gin.Default()
 	Server.GET("/ping", func(c *gin.Context) {
-		var p param
-
-		err := c.ShouldBindQuery(&p)
-		if nil != err {
-			fmt.Println(err.Error())
+		// var p param
+		group := ColorGroup{
+			ID:     1,
+			Name:   "Reds",
+			Colors: []string{"Crimson", "Red", "Ruby", "Maroon"},
 		}
+		// fmt.Println(a)
+		c.Exit(200, group)
+		// c.JSON(200, group)
+		// err := c.ShouldBindQuery(&p)
+		// if nil != err {
+		// 	fmt.Println(err.Error())
+		// }
 		// var b s
 		// err := c.ShouldBindJSON(&b)
 		// if nil != err {
 		// 	fmt.Println(err.Error())
 		// }
-		fmt.Println(p)
-		c.AbortWithStatus(http.StatusOK)
+		// s
 	})
 	Server.Run()
 }
