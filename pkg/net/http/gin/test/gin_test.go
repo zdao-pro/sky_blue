@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/zdao-pro/sky_blue/pkg/ecode"
 	"github.com/zdao-pro/sky_blue/pkg/log"
 	"github.com/zdao-pro/sky_blue/pkg/net/http/gin"
 )
@@ -53,13 +54,13 @@ func TestGin(t *testing.T) {
 	Server = gin.Default()
 	Server.GET("/ping", func(c *gin.Context) {
 		// var p param
-		group := ColorGroup{
-			ID:     1,
-			Name:   "Reds",
-			Colors: []string{"Crimson", "Red", "Ruby", "Maroon"},
-		}
+		// group := ColorGroup{
+		// 	ID:     1,
+		// 	Name:   "Reds",
+		// 	Colors: []string{"Crimson", "Red", "Ruby", "Maroon"},
+		// }
 		// fmt.Println(a)
-		c.Exit(200, group)
+		c.Exit(int(ecode.ParamInvaidErr))
 		// c.JSON(200, group)
 		// err := c.ShouldBindQuery(&p)
 		// if nil != err {

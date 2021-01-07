@@ -928,7 +928,12 @@ func (c *Context) Exit(code int, obj ...interface{}) {
 	}
 	resData["message"] = becode.Message()
 	if 0 < len(obj) {
-		resData["data"] = obj[0]
+		err, ok := obj[0].(error)
+		if ok {
+			resData["message"] = err.Error()
+		} else {
+			resData["data"] = obj[0]
+		}
 	}
 	c.Header("X-IS-Error-Code", resData["errcode"].(string))
 	c.Header("X-IS-Error-Msg", resData["message"].(string))
