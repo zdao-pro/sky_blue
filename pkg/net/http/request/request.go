@@ -16,6 +16,39 @@ import (
 	"time"
 )
 
+//NewRequest ..
+/*
+	@param1: timeout itime.Duration
+	@param2: headers map[string]string
+	@param2: cookies map[string]string
+*/
+func NewRequest(arg ...interface{}) *Request {
+	r := &Request{
+		timeout: 30,
+		headers: map[string]string{},
+		cookies: map[string]string{},
+	}
+	l := len(arg)
+	if l > 0 {
+		if t, ok := arg[0].(time.Duration); ok {
+			r.timeout = t
+		}
+	}
+	if l > 1 {
+		if headers, ok := arg[1].(map[string]string); ok {
+			r.headers = headers
+		}
+	}
+
+	if l > 2 {
+		if cookies, ok := arg[2].(map[string]string); ok {
+			r.cookies = cookies
+		}
+	}
+
+	return r
+}
+
 type Request struct {
 	cli               *http.Client
 	transport         *http.Transport
@@ -178,11 +211,11 @@ func (r *Request) JSON() *Request {
 
 // Build query data
 func (r *Request) buildBody(d ...interface{}) (io.Reader, error) {
-	if r.method == "GET" || r.method == "DELETE" || len(d) == 0 || (len(d) > 0 && d[0] == nil) {
+	if r.method == "DELETE" || len(d) <= 1 || d[1] == nil {
 		return nil, nil
 	}
 
-	switch d[0].(type) {
+	switch d[1].(type) {
 	case string:
 		return strings.NewReader(d[0].(string)), nil
 	case []byte:
@@ -345,6 +378,8 @@ func (r *Request) request(method, url string, data ...interface{}) (*Response, e
 		return nil, errors.New("parameter method and url is required")
 	}
 
+	url = handleURL(url)
+
 	// Debug infomation
 	defer r.log()
 
@@ -365,7 +400,7 @@ func (r *Request) request(method, url string, data ...interface{}) (*Response, e
 	method = strings.ToUpper(method)
 	r.method = method
 
-	if method == "GET" || method == "DELETE" {
+	if method == "GET" || method == "DELETE" || method == "POST" {
 		url, err = buildUrl(url, data...)
 		if err != nil {
 			return nil, err
@@ -403,6 +438,8 @@ func (r *Request) sendFile(url, filename, fileinput string) (*Response, error) {
 	if url == "" {
 		return nil, errors.New("parameter url is required")
 	}
+
+	url = handleURL(url)
 
 	fileBuffer := &bytes.Buffer{}
 	bodyWriter := multipart.NewWriter(fileBuffer)
