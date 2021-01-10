@@ -44,6 +44,8 @@ var DefaultErrorWriter io.Writer = os.Stderr
 var ginMode = debugCode
 var modeName = DebugMode
 
+var checkPram = true
+
 func init() {
 	mode := os.Getenv(EnvGinMode)
 	SetMode(mode)

@@ -14,6 +14,8 @@ import (
 	"reflect"
 	"strings"
 	"time"
+
+	"github.com/zdao-pro/sky_blue/pkg/log"
 )
 
 //NewRequest ..
@@ -423,6 +425,9 @@ func (r *Request) request(method, url string, data ...interface{}) (*Response, e
 	r.initBasicAuth(req)
 
 	resp, err := r.cli.Do(req)
+	if resp.StatusCode != 200 {
+		log.Warn("[Http Request error]StatusCode:%d,url:%s,header:%v,request_body:%v,response:%v", resp.StatusCode, req.URL, req.Header, "", string(response.body))
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -458,7 +463,6 @@ func (r *Request) sendFile(url, filename, fileinput string) (*Response, error) {
 	if er != nil {
 		return nil, er
 	}
-
 	contentType := bodyWriter.FormDataContentType()
 	bodyWriter.Close()
 

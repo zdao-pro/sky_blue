@@ -3,11 +3,14 @@ package request
 import (
 	"fmt"
 	"testing"
+
+	"github.com/zdao-pro/sky_blue/pkg/log"
 )
 
 type M map[string]Upstream
 
 func TestRequest(t *testing.T) {
+	log.Init(nil)
 	s := `user_server:
             server:
                 - pre.zhaodao88.com

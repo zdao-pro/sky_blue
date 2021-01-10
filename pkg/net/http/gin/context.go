@@ -704,7 +704,11 @@ func (c *Context) ShouldBindUri(obj interface{}) error {
 // ShouldBindWith binds the passed struct pointer using the specified binding engine.
 // See the binding package.
 func (c *Context) ShouldBindWith(obj interface{}, b binding.Binding) error {
-	return b.Bind(c.Request, obj)
+	err := b.Bind(c.Request, obj)
+	if true == checkPram {
+		c.Exit(101, err)
+	}
+	return err
 }
 
 // ShouldBindBodyWith is similar with ShouldBindWith, but it stores the request
