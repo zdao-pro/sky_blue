@@ -83,6 +83,8 @@ func GetAccessLogger(conf LogConfig) HandlerFunc {
 		param.ClientIP = c.ClientIP()
 		param.ContentLength = c.Request.ContentLength
 		param.RequestStr = c.Request.URL.String()
+		c.Writer.Header().Get("")
 		log.Access(accessRender(param))
 	}
 }
+g
