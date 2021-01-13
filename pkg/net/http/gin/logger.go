@@ -10,14 +10,11 @@ import (
 )
 
 const (
-	green   = "\033[97;42m"
-	white   = "\033[90;47m"
-	yellow  = "\033[90;43m"
-	red     = "\033[97;41m"
-	blue    = "\033[97;44m"
-	magenta = "\033[97;45m"
-	cyan    = "\033[97;46m"
-	reset   = "\033[0m"
+	purple = "\x1b[1;35m" //紫色
+	yellow = "\x1b[1;33m"
+	red    = "\x1b[97;41m"
+	white  = "\x1b[0;00m"
+	green  = "\x1b[1;32m"
 )
 
 //LogConfig log configure
@@ -42,7 +39,15 @@ type ParamData struct {
 }
 
 func accessRender(param ParamData) string {
-	return fmt.Sprintf("%v %v %d %s %s %s %s", param.TimeNow, param.Latency.Milliseconds(), param.HTTPCode, param.ClientIP, param.Method, param.Path, param.ErrorMessage)
+	return fmt.Sprintf("%s %s %v %v %d %s %s %s",
+		param.ClientIP,
+		param.TimeNow.Format("2006-01-02 15:04:05"),
+		param.TimeNow.Unix(),
+		param.Latency.Milliseconds()/1000,
+		param.HTTPCode,
+		param.Method,
+		param.Path,
+		param.ErrorMessage)
 }
 
 //GetAccessLogger retunrn access logger
