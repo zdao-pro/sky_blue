@@ -3,6 +3,7 @@ package log
 import (
 	"context"
 	"fmt"
+	"os"
 
 	"github.com/zdao-pro/sky_blue/pkg/env"
 )
@@ -59,6 +60,14 @@ func Init(conf *Config) {
 	// }
 	var hs []Handle
 
+	//udp log handle
+	udpServerAddr := os.Getenv("UDP_LOG_ADDR")
+	udpServerPort := os.Getenv("UDP_LOG_PORT")
+	if "" != udpServerAddr && "" != udpServerPort {
+		nlogH := newNlogHnadle(udpServerAddr, udpServerPort)
+		hs = append(hs, nlogH)
+	}
+
 	if logConfig.Stdout {
 		hs = append(hs, newStdoutHandle())
 	}
@@ -105,5 +114,47 @@ func Fetal(format string, args ...interface{}) {
 func Access(format string, args ...interface{}) {
 	if logConfig._fetalPrintFlag {
 		h.Log(context.Background(), _accessLevel, KVString(_log, fmt.Sprintf(format, args...)))
+	}
+}
+
+//Debugc ...
+func Debugc(ctx context.Context, format string, args ...interface{}) {
+	if logConfig._debugPrintFlag {
+		h.Log(ctx, _debugLevel, KVString(_log, fmt.Sprintf(format, args...)))
+	}
+}
+
+//Infoc ...
+func Infoc(ctx context.Context, format string, args ...interface{}) {
+	if logConfig._infoPrintFlag {
+		h.Log(ctx, _infoLevel, KVString(_log, fmt.Sprintf(format, args...)))
+	}
+}
+
+//Warnc ...
+func Warnc(ctx context.Context, format string, args ...interface{}) {
+	if logConfig._warnPrintFlag {
+		h.Log(ctx, _warnLevel, KVString(_log, fmt.Sprintf(format, args...)))
+	}
+}
+
+//Error ...
+func Errorc(ctx context.Context, format string, args ...interface{}) {
+	if logConfig._errorPrintFlag {
+		h.Log(ctx, _errorLevel, KVString(_log, fmt.Sprintf(format, args...)))
+	}
+}
+
+//Fetal ...
+func Fetalc(ctx context.Context, format string, args ...interface{}) {
+	if logConfig._fetalPrintFlag {
+		h.Log(ctx, _fetalLevel, KVString(_log, fmt.Sprintf(format, args...)))
+	}
+}
+
+//Access ...
+func Accessc(ctx context.Context, format string, args ...interface{}) {
+	if logConfig._fetalPrintFlag {
+		h.Log(ctx, _accessLevel, KVString(_log, fmt.Sprintf(format, args...)))
 	}
 }

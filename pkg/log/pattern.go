@@ -42,7 +42,6 @@ func (p *pattern) Render(w io.Writer, d ...D) error {
 		}
 		builder.WriteString(" ")
 	}
-	builder.WriteString("\n")
 	_, err := w.Write([]byte(builder.String()))
 	return err
 }
@@ -52,7 +51,10 @@ func renderLevel(d D) string {
 }
 
 func renderLongTime(d D) string {
-	return time.Now().Format("15:04:05.000")
+	if t, ok := d.Value.(time.Time); ok {
+		return t.Format("2006-01-02 15:04:05")
+	}
+	return ""
 }
 
 func renderDefault(d D) string {

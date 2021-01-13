@@ -24,14 +24,14 @@ func (hs Handles) Log(ctx context.Context, l Level, d ...D) {
 	if _accessLevel == l {
 		ds = append(ds, d...)
 	} else {
-		ds = append(ds, KVString(_level, l.String()), KV(_time, time.Now()))
+		ds = append(ds, prefixD[l], KV(_time, time.Now()), KVString(_level, l.String()))
 		ds = append(ds, d...)
 		if logConfig.Source {
 			fn := funcName(3)
 			ds = append(ds, KVString(_source, fn))
 		}
 	}
-
+	ds = append(ds, tailD[l])
 	for _, f := range hs.handles {
 		f.Log(ctx, l, ds...)
 	}
