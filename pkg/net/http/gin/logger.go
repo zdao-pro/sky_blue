@@ -40,10 +40,11 @@ type ParamData struct {
 	ContentLength      int64
 	Connection         int
 	ConnectionRequests int64
+	RequestStr         string
 }
 
 func accessRender(param ParamData) string {
-	return fmt.Sprintf("%s %s %v %v %d %d %d %s %d %s %s",
+	return fmt.Sprintf("%s %s %v %v %d %d %d %s %s %d %s %s",
 		param.ClientIP,
 		param.TimeNow.Format("2006-01-02 15:04:05"),
 		param.TimeNow.Unix(),
@@ -52,6 +53,7 @@ func accessRender(param ParamData) string {
 		param.Connection,
 		param.ConnectionRequests,
 		param.Path,
+		param.RequestStr,
 		param.HTTPCode,
 		param.Method,
 		param.ErrorMessage)
@@ -80,6 +82,7 @@ func GetAccessLogger(conf LogConfig) HandlerFunc {
 		param.HTTPCode = c.Writer.Status()
 		param.ClientIP = c.ClientIP()
 		param.ContentLength = c.Request.ContentLength
+		param.RequestStr = c.Request.URL.String()
 		log.Access(accessRender(param))
 	}
 }
