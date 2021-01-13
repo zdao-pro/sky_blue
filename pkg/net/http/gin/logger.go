@@ -15,6 +15,7 @@ const (
 	red    = "\x1b[97;41m"
 	white  = "\x1b[0;00m"
 	green  = "\x1b[1;32m"
+	reset  = "\033[0m"
 )
 
 //LogConfig log configure
@@ -35,18 +36,24 @@ type ParamData struct {
 	// Path is a path the client requests.
 	Path string
 	// ErrorMessage is set if error has occurred in processing the request.
-	ErrorMessage string
+	ErrorMessage       string
+	ContentLength      int64
+	Connection         int
+	ConnectionRequests int64
 }
 
 func accessRender(param ParamData) string {
-	return fmt.Sprintf("%s %s %v %v %d %s %s %s",
+	return fmt.Sprintf("%s %s %v %v %d %d %d %s %d %s %s",
 		param.ClientIP,
 		param.TimeNow.Format("2006-01-02 15:04:05"),
 		param.TimeNow.Unix(),
 		param.Latency.Milliseconds()/1000,
+		param.ContentLength,
+		param.Connection,
+		param.ConnectionRequests,
+		param.Path,
 		param.HTTPCode,
 		param.Method,
-		param.Path,
 		param.ErrorMessage)
 }
 
@@ -72,6 +79,7 @@ func GetAccessLogger(conf LogConfig) HandlerFunc {
 		param.Method = c.Request.Method
 		param.HTTPCode = c.Writer.Status()
 		param.ClientIP = c.ClientIP()
+		param.ContentLength = c.Request.ContentLength
 		log.Access(accessRender(param))
 	}
 }
