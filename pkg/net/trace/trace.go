@@ -2,7 +2,7 @@ package trace
 
 import (
 	"github.com/zdao-pro/sky_blue/pkg/env"
-	"github.com/zdao-pro/sky_blue/pkg/log"
+	// "github.com/zdao-pro/sky_blue/pkg/log"
 	"github.com/zdao-pro/sky_blue/pkg/util"
 
 	"os"
@@ -46,11 +46,11 @@ func init() {
 
 	endpoint, err := zipkin.NewEndpoint(config.ServiceName, config.HostName)
 	if err != nil {
-		log.Fetal("unable to create local endpoint: %+v\n", err)
+		// log.Fetal("unable to create local endpoint: %+v\n", err)
 	}
 	nativeTracer, err := zipkin.NewTracer(rpt, zipkin.WithLocalEndpoint(endpoint))
 	if err != nil {
-		log.Fetal("unable to create tracer: %+v\n", err)
+		// log.Fetal("unable to create tracer: %+v\n", err)
 	}
 	Tracer = zkOt.Wrap(nativeTracer)
 	opentracing.SetGlobalTracer(Tracer)

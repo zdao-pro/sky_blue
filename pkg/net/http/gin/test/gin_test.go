@@ -59,6 +59,7 @@ func TestGin(t *testing.T) {
 		// 	Name:   "Reds",
 		// 	Colors: []string{"Crimson", "Red", "Ruby", "Maroon"},
 		// }
+		log.Infoc(c.Context, "trace test")
 		fmt.Println("uid:", c.UserID)
 		c.Exit(int(ecode.ParamInvaidErr))
 		// c.JSON(200, group)

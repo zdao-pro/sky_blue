@@ -2,7 +2,10 @@ package log
 
 import (
 	"context"
+	"fmt"
 	"time"
+
+	"github.com/zdao-pro/sky_blue/pkg/net/trace"
 )
 
 //Handles ...
@@ -31,7 +34,11 @@ func (hs Handles) Log(ctx context.Context, l Level, d ...D) {
 			ds = append(ds, KVString(_source, fn))
 		}
 	}
+	if t, ok := trace.FromContext(ctx); ok {
+		ds = append(ds, KVString(_log, fmt.Sprintf("\x1b[97;41mtrace_id:%s\x1b[0m", t.TraceID())))
+	}
 	ds = append(ds, tailD[l])
+
 	for _, f := range hs.handles {
 		f.Log(ctx, l, ds...)
 	}
