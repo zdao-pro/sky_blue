@@ -14,6 +14,7 @@ require (
 	github.com/go-sql-driver/mysql v1.5.0
 	github.com/gohouse/gorose/v2 v2.1.10
 	github.com/golang/protobuf v1.4.2
+	github.com/google/uuid v1.1.4
 	github.com/leodido/go-urn v1.2.0
 	github.com/mattn/go-isatty v0.0.12
 	github.com/opentracing/opentracing-go v1.2.0

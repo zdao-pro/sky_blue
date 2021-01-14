@@ -5,6 +5,7 @@
 package gin
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -45,6 +46,7 @@ const abortIndex int8 = math.MaxInt8 / 2
 // Context is the most important part of gin. It allows us to pass variables between middleware,
 // manage the flow, validate the JSON of a request and render a JSON response for example.
 type Context struct {
+	context.Context
 	writermem responseWriter
 	Request   *http.Request
 	Writer    ResponseWriter
@@ -1053,6 +1055,12 @@ func (c *Context) Stream(step func(w io.Writer) bool) bool {
 			}
 		}
 	}
+}
+
+//IsInternalURL 是否是internal接口
+func (c *Context) IsInternalURL() (b bool) {
+	b = internalRegex.MatchString(c.Request.URL.Path)
+	return
 }
 
 /************************************/

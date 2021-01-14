@@ -30,7 +30,7 @@ var prefixD = [...]D{
 	_debugLevel:  KVString("debug", white),
 	_infoLevel:   KVString("info", green),
 	_warnLevel:   KVString("warn", purple),
-	_accessLevel: KVString("access", white),
+	_accessLevel: KVString("access", ""),
 	_errorLevel:  KVString("error", yellow),
 	_fetalLevel:  KVString("fetal", red),
 }
@@ -39,7 +39,7 @@ var tailD = [...]D{
 	_debugLevel:  KVString("debug", "\x1b[0m\n"),
 	_infoLevel:   KVString("info", "\x1b[0m\n"),
 	_warnLevel:   KVString("warn", "\x1b[0m\n"),
-	_accessLevel: KVString("access", "\x1b[0m\n"),
+	_accessLevel: KVString("access", "\n"),
 	_errorLevel:  KVString("error", "\x1b[0m\n"),
 	_fetalLevel:  KVString("fetal", "\x1b[0m\n"),
 }

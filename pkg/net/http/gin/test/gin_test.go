@@ -52,14 +52,14 @@ type ColorGroup struct {
 func TestGin(t *testing.T) {
 	log.Init(nil)
 	Server = gin.Default()
-	Server.GET("/ping", func(c *gin.Context) {
+	Server.GET("/internal/ping", func(c *gin.Context) {
 		// var p param
 		// group := ColorGroup{
 		// 	ID:     1,
 		// 	Name:   "Reds",
 		// 	Colors: []string{"Crimson", "Red", "Ruby", "Maroon"},
 		// }
-		// fmt.Println(a)
+		fmt.Println("uid:", c.UserID)
 		c.Exit(int(ecode.ParamInvaidErr))
 		// c.JSON(200, group)
 		// err := c.ShouldBindQuery(&p)
@@ -72,8 +72,10 @@ func TestGin(t *testing.T) {
 		// 	fmt.Println(err.Error())
 		// }
 		// s
+		// fmt.Println(c.Context)
 	})
 	Server.Run()
+
 }
 
 type user struct {

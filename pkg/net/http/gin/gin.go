@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"regexp"
 	"sync"
 
 	"github.com/zdao-pro/sky_blue/pkg/net/http/gin/internal/bytesconv"
@@ -18,6 +19,7 @@ const defaultMultipartMemory = 32 << 20 // 32 MB
 var (
 	default404Body = []byte("404 page not found")
 	default405Body = []byte("405 method not allowed")
+	internalRegex  = regexp.MustCompile(`^/internal/.*$`)
 )
 
 var defaultAppEngine bool
@@ -155,7 +157,7 @@ func New() *Engine {
 func Default() *Engine {
 	debugPrintWARNINGDefault()
 	engine := New()
-	engine.Use(GetAccessLogger(LogConfig{}), Recovery())
+	engine.Use(GetInitHandle(), Trace(), ServiceCheckHandle(), GetAccessLogger(LogConfig{}), Recovery())
 	return engine
 }
 
