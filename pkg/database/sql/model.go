@@ -34,8 +34,7 @@ func NewModel(db *DB) (md *Model) {
 // The args are for any placeholder parameters in the query.
 func (m *Model) Exec(c context.Context, query string, args ...interface{}) (res sql.Result, err error) {
 	if m.Tx != nil {
-		fmt.Println("33333")
-		return m.Tx.Exec(query, args...)
+		return m.Tx.Exec(c, query, args...)
 	}
 	return m.DB.Exec(c, query, args...)
 }
@@ -44,7 +43,7 @@ func (m *Model) Exec(c context.Context, query string, args ...interface{}) (res 
 // for any placeholder parameters in the query.
 func (m *Model) Query(c context.Context, query string, args ...interface{}) (*Rows, error) {
 	if m.Tx != nil {
-		return m.Tx.Query(query, args...)
+		return m.Tx.Query(c, query, args...)
 	}
 	return m.DB.Query(c, query, args...)
 }
@@ -54,7 +53,7 @@ func (m *Model) Query(c context.Context, query string, args ...interface{}) (*Ro
 // Scan method is called.
 func (m *Model) QueryRow(c context.Context, query string, args ...interface{}) *Row {
 	if m.Tx != nil {
-		return m.Tx.QueryRow(query, args...)
+		return m.Tx.QueryRow(c, query, args...)
 	}
 	return m.DB.QueryRow(c, query, args...)
 }
@@ -63,7 +62,7 @@ func (m *Model) QueryRow(c context.Context, query string, args ...interface{}) *
 func (m *Model) Select(c context.Context, dest interface{}, query string, args ...interface{}) (err error) {
 	var rs *Rows
 	if m.Tx != nil {
-		rs, err = m.Tx.Query(query, args...)
+		rs, err = m.Tx.Query(c, query, args...)
 	} else {
 		rs, err = m.DB.Query(c, query, args...)
 	}
@@ -81,10 +80,6 @@ func (m *Model) Select(c context.Context, dest interface{}, query string, args .
 	}
 
 	a := rt.Elem()
-	// if reflect.Struct != a.Kind() {
-	// 	err = errors.New("the type of dest is not allowed")
-	// 	return
-	// }
 
 	// convert the query result to the list of map
 	columns, _ := rs.Columns()
@@ -110,12 +105,6 @@ func (m *Model) Select(c context.Context, dest interface{}, query string, args .
 		err = ErrNoResult
 		return
 	}
-
-	// d := list[0]
-	// for k, v := range d {
-	// 	t := fmt.Sprintf("%T", v)
-	// 	fmt.Println("key:", k, "v:", v, "type:", t)
-	// }
 
 	if reflect.Struct == a.Kind() {
 		vType := a.Type()
@@ -154,7 +143,6 @@ func (m *Model) Rollback() (err error) {
 // Commit commits the transaction.
 func (m *Model) Commit() (err error) {
 	if m.Tx != nil {
-		fmt.Println("444444", m.Tx)
 		err = m.Tx.Commit()
 	}
 	return
