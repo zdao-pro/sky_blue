@@ -1,6 +1,7 @@
 package request
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -16,7 +17,7 @@ func TestRequest(t *testing.T) {
                 - pre.zhaodao88.com
             keepalive: 100`
 	InitUpstream(s)
-	r := NewRequest()
+	r := NewRequest(context.Background())
 	p := map[string]interface{}{
 		"token": "eee",
 	}

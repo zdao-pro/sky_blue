@@ -2,6 +2,7 @@ package request
 
 import (
 	"bytes"
+	"context"
 	"crypto/tls"
 	"encoding/json"
 	"errors"
@@ -24,11 +25,12 @@ import (
 	@param2: headers map[string]string
 	@param2: cookies map[string]string
 */
-func NewRequest(arg ...interface{}) *Request {
+func NewRequest(c context.Context, arg ...interface{}) *Request {
 	r := &Request{
 		timeout: 30,
 		headers: map[string]string{},
 		cookies: map[string]string{},
+		Context: c,
 	}
 	l := len(arg)
 	if l > 0 {
@@ -51,7 +53,9 @@ func NewRequest(arg ...interface{}) *Request {
 	return r
 }
 
+//Request ..
 type Request struct {
+	context.Context
 	cli               *http.Client
 	transport         *http.Transport
 	debug             bool
@@ -426,7 +430,7 @@ func (r *Request) request(method, url string, data ...interface{}) (*Response, e
 
 	resp, err := r.cli.Do(req)
 	if resp.StatusCode != 200 {
-		log.Warn("[Http Request error]StatusCode:%d,url:%s,header:%v,request_body:%v,response:%v", resp.StatusCode, req.URL, req.Header, "", string(response.body))
+		log.Warnc(r.Context, "[Http Request error]StatusCode:%d,url:%s,header:%v,request_body:%v,response:%v", resp.StatusCode, req.URL, req.Header, "", string(response.body))
 	}
 	if err != nil {
 		return nil, err
