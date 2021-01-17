@@ -9,7 +9,10 @@ import (
 	"github.com/zdao-pro/sky_blue/pkg/ecode"
 	"github.com/zdao-pro/sky_blue/pkg/log"
 	"github.com/zdao-pro/sky_blue/pkg/net/http/gin"
+	"github.com/zdao-pro/sky_blue/pkg/net/http/request"
 	"github.com/zdao-pro/sky_blue/pkg/net/trace/zipkin"
+	"github.com/zdao-pro/sky_blue/pkg/peach"
+	_ "github.com/zdao-pro/sky_blue/pkg/peach/apollo"
 )
 
 //Server is a gin Engine
@@ -54,6 +57,13 @@ func TestGin(t *testing.T) {
 	log.Init(nil)
 	zipkin.Init("gin")
 	defer zipkin.Close()
+	err := peach.Init(peach.PeachDriverApollo, []string{"zdao_backend.sky_blue", "zdao_backend.common"})
+	if nil != err {
+		panic(err)
+	}
+	// 初始化http request
+	upstreamStr, _ := peach.Get("upstream.yaml").String()
+	request.InitUpstream(upstreamStr)
 	Server = gin.Default()
 	Server.GET("/internal/ping", func(c *gin.Context) {
 		// var p param
@@ -62,6 +72,15 @@ func TestGin(t *testing.T) {
 		// 	Name:   "Reds",
 		// 	Colors: []string{"Crimson", "Red", "Ruby", "Maroon"},
 		// }
+		r := request.NewRequest(c.Context)
+		p := map[string]interface{}{
+			"token": "eee",
+		}
+		rs, err := r.Get("https://$user_server/user/token_check", p)
+		if err != nil {
+			panic(err)
+		}
+		fmt.Println(rs.Content())
 		log.Infoc(c.Context, "trace test")
 		fmt.Println("uid:", c.UserID)
 		c.Exit(int(ecode.ParamInvaidErr))

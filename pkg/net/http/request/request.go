@@ -16,6 +16,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/opentracing/opentracing-go"
 	"github.com/zdao-pro/sky_blue/pkg/log"
 )
 
@@ -373,6 +374,9 @@ func (r *Request) Upload(url, filename, fileinput string) (*Response, error) {
 // Send http request
 func (r *Request) request(method, url string, data ...interface{}) (*Response, error) {
 	// Build Response
+	s := opentracing.SpanFromContext(r.Context)
+	span2 := opentracing.StartSpan(url, opentracing.ChildOf(s.Context()))
+	defer span2.Finish()
 	response := &Response{}
 
 	// Start time

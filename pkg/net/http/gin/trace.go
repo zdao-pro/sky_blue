@@ -26,8 +26,10 @@ func Trace() HandlerFunc {
 		if nil != err {
 			panic(err)
 		}
-		span := opentracing.StartSpan("eee", opentracing.ChildOf(s))
-
+		span := opentracing.StartSpan(c.Request.URL.Path, opentracing.ChildOf(s))
+		span.SetTag("url", c.Request.URL.Path)
+		span.SetTag("param", c.Request.URL.String())
+		c.Context = opentracing.ContextWithSpan(c.Context, span)
 		c.Next()
 		span.Finish()
 	}
