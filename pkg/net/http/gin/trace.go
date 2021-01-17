@@ -29,6 +29,11 @@ func Trace() HandlerFunc {
 		span := opentracing.StartSpan(c.Request.URL.Path, opentracing.ChildOf(s))
 		span.SetTag("url", c.Request.URL.Path)
 		span.SetTag("param", c.Request.URL.String())
+		span.Tracer().Inject(
+			span.Context(),
+			opentracing.HTTPHeaders,
+			carrier,
+		)
 		c.Context = opentracing.ContextWithSpan(c.Context, span)
 		c.Next()
 		span.Finish()

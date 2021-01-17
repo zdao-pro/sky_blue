@@ -433,11 +433,11 @@ func (r *Request) request(method, url string, data ...interface{}) (*Response, e
 	r.initBasicAuth(req)
 
 	resp, err := r.cli.Do(req)
-	if resp.StatusCode != 200 {
-		log.Warnc(r.Context, "[Http Request error]StatusCode:%d,url:%s,header:%v,request_body:%v,response:%v", resp.StatusCode, req.URL, req.Header, "", string(response.body))
-	}
 	if err != nil {
 		return nil, err
+	}
+	if resp.StatusCode != 200 {
+		log.Warnc(r.Context, "[Http Request error]StatusCode:%d,url:%s,header:%v,request_body:%v,response:%v", resp.StatusCode, req.URL, req.Header, "", string(response.body))
 	}
 
 	response.url = url

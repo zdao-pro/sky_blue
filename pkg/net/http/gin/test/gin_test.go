@@ -76,13 +76,45 @@ func TestGin(t *testing.T) {
 		p := map[string]interface{}{
 			"token": "eee",
 		}
+		rs, err := r.Get("http://127.0.0.1:8080/ping", p)
+		if err != nil {
+			panic(err)
+		}
+		fmt.Println(rs.Content())
+		// log.Infoc(c.Context, "trace test")
+		// fmt.Println("uid:", c.UserID)
+
+		c.Exit(int(ecode.ParamInvaidErr))
+		// c.JSON(200, group)
+		// err := c.ShouldBindQuery(&p)
+		// if nil != err {
+		// 	fmt.Println(err.Error())
+		// }
+		// var b s
+		// err := c.ShouldBindJSON(&b)
+		// if nil != err {
+		// 	fmt.Println(err.Error())
+		// }
+		// s
+		// fmt.Println(c.Context)
+	})
+	Server.GET("/ping", func(c *gin.Context) {
+		// var p param
+		// group := ColorGroup{
+		// 	ID:     1,
+		// 	Name:   "Reds",
+		// 	Colors: []string{"Crimson", "Red", "Ruby", "Maroon"},
+		// }
+		r := request.NewRequest(c.Context)
+		p := map[string]interface{}{
+			"token": "eeerwrwwe",
+		}
 		rs, err := r.Get("https://$user_server/user/token_check", p)
 		if err != nil {
 			panic(err)
 		}
 		fmt.Println(rs.Content())
-		log.Infoc(c.Context, "trace test")
-		fmt.Println("uid:", c.UserID)
+
 		c.Exit(int(ecode.ParamInvaidErr))
 		// c.JSON(200, group)
 		// err := c.ShouldBindQuery(&p)
