@@ -1,40 +1,48 @@
 package zipkin
 
 import (
-	"log"
+	"net/http"
 	"testing"
 	"time"
 
 	"github.com/opentracing/opentracing-go"
-	zkOt "github.com/openzipkin-contrib/zipkin-go-opentracing"
-	"github.com/openzipkin/zipkin-go"
-	zkHttp "github.com/openzipkin/zipkin-go/reporter/http"
 )
 
 func TestZipkin(t *testing.T) {
 	{
-		reporter := zkHttp.NewReporter("http://localhost:9411/api/v2/spans")
-		defer reporter.Close()
-		endpoint, err := zipkin.NewEndpoint("main3", "localhost")
-		if err != nil {
-			log.Fatalf("unable to create local endpoint: %+v\n", err)
+		var r http.Request
+		Init("hhaha")
+		defer Close()
+		carrier := opentracing.HTTPHeadersCarrier(r.Header)
+		s, err := opentracing.GlobalTracer().Extract(opentracing.HTTPHeaders, carrier)
+		if nil != err {
+			panic(err)
 		}
-		nativeTracer, err := zipkin.NewTracer(reporter, zipkin.WithLocalEndpoint(endpoint))
-		if err != nil {
-			log.Fatalf("unable to create tracer: %+v\n", err)
-		}
-		zkTracer = zkOt.Wrap(nativeTracer)
-		opentracing.SetGlobalTracer(zkTracer)
-
-		span := zkTracer.StartSpan("zipkin_test")
-		time.Sleep(time.Duration(1) * time.Second)
-		spa2 := opentracing.StartSpan("zip", opentracing.ChildOf(span.Context()))
-		spa3 := opentracing.StartSpan("zip2", opentracing.FollowsFrom(spa2.Context()))
-		time.Sleep(time.Duration(1) * time.Second)
-		spa3.Finish()
-		time.Sleep(time.Duration(2) * time.Second)
-		spa2.Finish()
+		span := opentracing.StartSpan("eee", opentracing.ChildOf(s))
 		time.Sleep(time.Duration(1) * time.Second)
 		span.Finish()
+		// reporter := zkHttp.NewReporter("http://zipkin.zhaodao88.com/api/v2/spans")
+		// defer reporter.Close()
+		// endpoint, err := zipkin.NewEndpoint("main3", "localhost")
+		// if err != nil {
+		// 	log.Fatalf("unable to create local endpoint: %+v\n", err)
+		// }
+		// nativeTracer, err := zipkin.NewTracer(reporter, zipkin.WithLocalEndpoint(endpoint))
+		// if err != nil {
+		// 	log.Fatalf("unable to create tracer: %+v\n", err)
+		// }
+		// zkTracer = zkOt.Wrap(nativeTracer)
+		// opentracing.SetGlobalTracer(zkTracer)
+
+		// span := zkTracer.StartSpan("zipkin_test")
+		// time.Sleep(time.Duration(1) * time.Second)
+		// spa2 := opentracing.StartSpan("zip", opentracing.ChildOf(span.Context()))
+		// spa3 := opentracing.StartSpan("zip2", opentracing.FollowsFrom(spa2.Context()))
+		// time.Sleep(time.Duration(1) * time.Second)
+		// spa3.Finish()
+		// time.Sleep(time.Duration(2) * time.Second)
+		// spa2.Finish()
+		// time.Sleep(time.Duration(1) * time.Second)
+		// span.Finish()
 	}
 }

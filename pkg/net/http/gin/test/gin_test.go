@@ -9,6 +9,7 @@ import (
 	"github.com/zdao-pro/sky_blue/pkg/ecode"
 	"github.com/zdao-pro/sky_blue/pkg/log"
 	"github.com/zdao-pro/sky_blue/pkg/net/http/gin"
+	"github.com/zdao-pro/sky_blue/pkg/net/trace/zipkin"
 )
 
 //Server is a gin Engine
@@ -51,6 +52,8 @@ type ColorGroup struct {
 //Init http server
 func TestGin(t *testing.T) {
 	log.Init(nil)
+	zipkin.Init("gin")
+	defer zipkin.Close()
 	Server = gin.Default()
 	Server.GET("/internal/ping", func(c *gin.Context) {
 		// var p param
