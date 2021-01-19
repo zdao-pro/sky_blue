@@ -7,7 +7,9 @@ import (
 	zkOt "github.com/openzipkin-contrib/zipkin-go-opentracing"
 	"github.com/openzipkin/zipkin-go"
 	"github.com/openzipkin/zipkin-go/reporter"
-	zkHttp "github.com/openzipkin/zipkin-go/reporter/http"
+
+	// zkHttp "github.com/openzipkin/zipkin-go/reporter/http"
+	zipkinkafka "github.com/openzipkin/zipkin-go/reporter/kafka"
 	"github.com/zdao-pro/sky_blue/pkg/net/trace"
 	"github.com/zdao-pro/sky_blue/pkg/util"
 )
@@ -35,7 +37,15 @@ func Init(serviveName string) {
 		config.ZipkinHost = zipkinHost
 	}
 	// fmt.Println(util.GetLocalAddress())
-	Reporter = zkHttp.NewReporter(config.ZipkinHost)
+	// Reporter = zkHttp.NewReporter(config.ZipkinHost)
+	// zkKafka.NewReporter
+	r, err := zipkinkafka.NewReporter([]string{"10.20.2.156:9092"})
+	if nil != err {
+		panic(err)
+	}
+
+	Reporter = r
+
 	endpoint, err := zipkin.NewEndpoint(serviveName, util.GetLocalAddress())
 	if err != nil {
 		panic(err)
