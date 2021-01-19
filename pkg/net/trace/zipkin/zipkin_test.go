@@ -1,6 +1,7 @@
 package zipkin
 
 import (
+	"fmt"
 	"net/http"
 	"testing"
 	"time"
@@ -17,6 +18,7 @@ func TestZipkin(t *testing.T) {
 	// }
 	// defer r.Close()
 
+	fmt.Println(GenerateTraceID())
 	var r http.Request
 	Init("hhaha")
 	defer Close()

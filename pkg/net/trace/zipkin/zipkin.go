@@ -8,6 +8,7 @@ import (
 	"github.com/openzipkin/zipkin-go"
 	"github.com/openzipkin/zipkin-go/reporter"
 
+	"github.com/openzipkin/zipkin-go/idgenerator"
 	zkHttp "github.com/openzipkin/zipkin-go/reporter/http"
 	zipkinkafka "github.com/openzipkin/zipkin-go/reporter/kafka"
 	"github.com/zdao-pro/sky_blue/pkg/net/trace"
@@ -27,6 +28,10 @@ type Config struct {
 }
 
 var config Config
+
+// func tracerOptions(opts *zkOt.TracerOptions) {
+// 	opts. = zkOt.B3InjectSingle
+// }
 
 // Init ..
 func Init(serviveName string) {
@@ -65,8 +70,15 @@ func Init(serviveName string) {
 		panic(err)
 	}
 
-	t := zkOt.Wrap(nativeTracer)
+	t := zkOt.Wrap(nativeTracer) // zkOt.WithB3InjectOption(zkOt.B3InjectStandard)
 	trace.SetGlobalTracer(t)
+}
+
+//GenerateTraceID ..
+func GenerateTraceID() string {
+	i := idgenerator.NewRandom64()
+	tr := i.TraceID()
+	return tr.String()
 }
 
 //Close ..
