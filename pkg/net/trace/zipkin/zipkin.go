@@ -8,7 +8,7 @@ import (
 	"github.com/openzipkin/zipkin-go"
 	"github.com/openzipkin/zipkin-go/reporter"
 
-	// zkHttp "github.com/openzipkin/zipkin-go/reporter/http"
+	zkHttp "github.com/openzipkin/zipkin-go/reporter/http"
 	zipkinkafka "github.com/openzipkin/zipkin-go/reporter/kafka"
 	"github.com/zdao-pro/sky_blue/pkg/net/trace"
 	"github.com/zdao-pro/sky_blue/pkg/util"
@@ -23,28 +23,37 @@ var Reporter reporter.Reporter
 //Config is...
 type Config struct {
 	ZipkinHost string
+	KafkaHost  string
 }
 
 var config Config
 
 // Init ..
 func Init(serviveName string) {
-	config = Config{
-		ZipkinHost: "http://zipkin.zhaodao88.com/api/v2/spans",
-	}
-	zipkinHost := os.Getenv("ZIPKIN_HOS")
+	zipkinHost := os.Getenv("ZIPKIN_HOST")
 	if "" != zipkinHost {
 		config.ZipkinHost = zipkinHost
 	}
-	// fmt.Println(util.GetLocalAddress())
-	// Reporter = zkHttp.NewReporter(config.ZipkinHost)
-	// zkKafka.NewReporter
-	r, err := zipkinkafka.NewReporter([]string{"10.20.2.156:9092"})
-	if nil != err {
-		panic(err)
+
+	//@example: '127.0.0.1:9092'
+	kafkaHost := os.Getenv("KAFKA_HOST")
+	if "" != kafkaHost {
+		config.KafkaHost = kafkaHost
 	}
 
-	Reporter = r
+	// fmt.Println(util.GetLocalAddress())
+
+	if config.ZipkinHost != "" {
+		Reporter = zkHttp.NewReporter(config.ZipkinHost)
+	} else if config.KafkaHost != "" {
+		r, err := zipkinkafka.NewReporter([]string{config.KafkaHost})
+		if nil != err {
+			panic(err)
+		}
+		Reporter = r
+	} else {
+		return
+	}
 
 	endpoint, err := zipkin.NewEndpoint(serviveName, util.GetLocalAddress())
 	if err != nil {
