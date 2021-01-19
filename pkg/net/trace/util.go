@@ -1,6 +1,8 @@
 package trace
 
-import "context"
+import (
+	"context"
+)
 
 type ctxKey string
 

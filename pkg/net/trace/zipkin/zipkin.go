@@ -10,7 +10,8 @@ import (
 
 	"github.com/openzipkin/zipkin-go/idgenerator"
 	zkHttp "github.com/openzipkin/zipkin-go/reporter/http"
-	zipkinkafka "github.com/openzipkin/zipkin-go/reporter/kafka"
+
+	// zipkinkafka "github.com/openzipkin/zipkin-go/reporter/kafka"
 	"github.com/zdao-pro/sky_blue/pkg/net/trace"
 	"github.com/zdao-pro/sky_blue/pkg/util"
 )
@@ -51,11 +52,11 @@ func Init(serviveName string) {
 	if config.ZipkinHost != "" {
 		Reporter = zkHttp.NewReporter(config.ZipkinHost)
 	} else if config.KafkaHost != "" {
-		r, err := zipkinkafka.NewReporter([]string{config.KafkaHost})
-		if nil != err {
-			panic(err)
-		}
-		Reporter = r
+		// r, err := zipkinkafka.NewReporter([]string{config.KafkaHost})
+		// if nil != err {
+		// 	panic(err)
+		// }
+		// Reporter = r
 	} else {
 		return
 	}

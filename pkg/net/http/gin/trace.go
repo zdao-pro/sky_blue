@@ -1,8 +1,6 @@
 package gin
 
 import (
-	"fmt"
-
 	"github.com/opentracing/opentracing-go"
 )
 
@@ -31,22 +29,17 @@ func Trace() HandlerFunc {
 		}
 
 		span := opentracing.StartSpan(c.Request.URL.Path, opentracing.ChildOf(s))
+		defer span.Finish()
 		span.SetTag("url", c.Request.URL.Path)
 		span.SetTag("param", c.Request.URL.String())
-		span.Tracer().Inject(
-			span.Context(),
-			opentracing.HTTPHeaders,
-			carrier,
-		)
+		// fmt.Println("rr:", span.BaggageItem("TraceId"))
+
+		er := opentracing.GlobalTracer().Inject(s, opentracing.HTTPHeaders, carrier)
+		if nil == er {
+			// fmt.Println("vvv", c.Request.Header)
+		}
 		c.Context = opentracing.ContextWithSpan(c.Context, span)
 		c.Next()
 
-		ecarrier := opentracing.TextMapWriter(c.Writer.Header())
-		er := opentracing.GlobalTracer().Inject(s, opentracing.TextMap, ecarrier)
-		if nil != er {
-			panic(er)
-		}
-		fmt.Println("ff", ecarrier)
-		span.Finish()
 	}
 }

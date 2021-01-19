@@ -432,6 +432,14 @@ func (r *Request) request(method, url string, data ...interface{}) (*Response, e
 	r.initCookies(req)
 	r.initBasicAuth(req)
 
+	//trace decorate
+	ecarrier := opentracing.TextMapWriter(req.Header)
+	er := opentracing.GlobalTracer().Inject(span2.Context(), opentracing.HTTPHeaders, ecarrier)
+	if nil != er {
+		// panic(er)
+	}
+	// fmt.Println("ff", ecarrier)
+
 	resp, err := r.cli.Do(req)
 	if err != nil {
 		return nil, err
