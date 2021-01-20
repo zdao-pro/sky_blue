@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/zdao-pro/sky_blue/pkg/log"
+	"github.com/zdao-pro/sky_blue/pkg/net/trace"
 )
 
 const (
@@ -155,10 +156,10 @@ func GetAccessLogger(conf LogConfig) HandlerFunc {
 		// fmt.Println("vveev", c.Request.Header)
 		// fmt.Println("vvv", c.Request.Header.Get("X-B3-Traceid"))
 
-		param.TraceID = c.Request.Header.Get("X-B3-Traceid")
-		// if t, ok := trace.FromContext(c.Context); ok {
-		// 	param.TraceID = t.TraceID()
-		// }
+		// param.TraceID = c.Request.Header.Get("X-B3-Traceid")
+		if t, ok := trace.FromContext(c.Context); ok {
+			param.TraceID = t.TraceID()
+		}
 		// c.Request.Body.
 		log.Access(accessRender(param))
 	}

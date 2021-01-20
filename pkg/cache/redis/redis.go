@@ -19,6 +19,7 @@ import (
 
 	"time"
 
+	"github.com/opentracing/opentracing-go"
 	"github.com/pkg/errors"
 	"github.com/zdao-pro/sky_blue/pkg/common/pool"
 )
@@ -112,6 +113,15 @@ func NewRedisClient(c *NewConfig, options ...DialOption) *Redis {
 // Do gets a new conn from pool, then execute Do with this conn, finally close this conn.
 // ATTENTION: Don't use this method with transaction command like MULTI etc. Because every Do will close conn automatically, use r.Conn to get a raw conn for this situation.
 func (r *Redis) Do(ctx context.Context, db int, commandName string, args ...interface{}) (reply interface{}, err error) {
+	//trace
+	s := opentracing.SpanFromContext(ctx)
+	if nil != s {
+		span2 := opentracing.StartSpan(commandName, opentracing.ChildOf(s.Context()))
+		span2.SetTag("commandName", commandName)
+		span2.SetTag("db", db)
+		span2.SetTag("args", args)
+		defer span2.Finish()
+	}
 	conn := r.pool.Get(ctx)
 	defer conn.Close()
 	if _, err := conn.Do("SELECT", db); err != nil {

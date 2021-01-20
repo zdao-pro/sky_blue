@@ -374,9 +374,7 @@ func (r *Request) Upload(url, filename, fileinput string) (*Response, error) {
 // Send http request
 func (r *Request) request(method, url string, data ...interface{}) (*Response, error) {
 	// Build Response
-	s := opentracing.SpanFromContext(r.Context)
-	span2 := opentracing.StartSpan(url, opentracing.ChildOf(s.Context()))
-	defer span2.Finish()
+
 	response := &Response{}
 
 	// Start time
@@ -390,6 +388,13 @@ func (r *Request) request(method, url string, data ...interface{}) (*Response, e
 
 	url = handleURL(url)
 
+	s := opentracing.SpanFromContext(r.Context)
+	var span2 opentracing.Span
+	if nil != s {
+		span2 = opentracing.StartSpan(url, opentracing.ChildOf(s.Context()))
+		span2.SetTag("url", url)
+		defer span2.Finish()
+	}
 	// Debug infomation
 	defer r.log()
 
@@ -433,11 +438,14 @@ func (r *Request) request(method, url string, data ...interface{}) (*Response, e
 	r.initBasicAuth(req)
 
 	//trace decorate
-	ecarrier := opentracing.TextMapWriter(req.Header)
-	er := opentracing.GlobalTracer().Inject(span2.Context(), opentracing.HTTPHeaders, ecarrier)
-	if nil != er {
-		// panic(er)
+	if nil != s {
+		ecarrier := opentracing.TextMapWriter(req.Header)
+		er := opentracing.GlobalTracer().Inject(span2.Context(), opentracing.HTTPHeaders, ecarrier)
+		if nil != er {
+			log.Warnc(r.Context, er.Error())
+		}
 	}
+
 	// fmt.Println("ff", ecarrier)
 
 	resp, err := r.cli.Do(req)

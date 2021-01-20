@@ -2,6 +2,8 @@ package gin
 
 import (
 	"github.com/opentracing/opentracing-go"
+	"github.com/zdao-pro/sky_blue/pkg/log"
+	"github.com/zdao-pro/sky_blue/pkg/net/trace"
 )
 
 // Trace is trace middleware
@@ -25,20 +27,28 @@ func Trace() HandlerFunc {
 		// fmt.Println(carrier)
 		s, err := opentracing.GlobalTracer().Extract(opentracing.HTTPHeaders, carrier)
 		if nil != err {
-			panic(err)
+			log.Fetalc(c.Context, err.Error())
+		}
+		if s != nil {
+			span := opentracing.StartSpan(c.Request.URL.Path, opentracing.ChildOf(s))
+			defer span.Finish()
+			span.SetTag("url", c.Request.URL.Path)
+			span.SetTag("param", c.Request.URL.String())
+			// fmt.Println("rr:", span.BaggageItem("TraceId"))
+
+			er := opentracing.GlobalTracer().Inject(span.Context(), opentracing.HTTPHeaders, carrier)
+			if nil != er {
+				log.Warnc(c.Context, er.Error())
+				// fmt.Println("vvv", c.Request.Header, "url:", c.Request.URL.Path)
+			} else {
+				traceID := c.Request.Header.Get("X-B3-Traceid")
+				t := trace.NewGinTrace(traceID)
+				//new c.Context
+				c.Context = trace.NewContext(c.Context, t)
+			}
+			c.Context = opentracing.ContextWithSpan(c.Context, span)
 		}
 
-		span := opentracing.StartSpan(c.Request.URL.Path, opentracing.ChildOf(s))
-		defer span.Finish()
-		span.SetTag("url", c.Request.URL.Path)
-		span.SetTag("param", c.Request.URL.String())
-		// fmt.Println("rr:", span.BaggageItem("TraceId"))
-
-		er := opentracing.GlobalTracer().Inject(s, opentracing.HTTPHeaders, carrier)
-		if nil == er {
-			// fmt.Println("vvv", c.Request.Header)
-		}
-		c.Context = opentracing.ContextWithSpan(c.Context, span)
 		c.Next()
 
 	}

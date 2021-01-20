@@ -6,7 +6,9 @@ import (
 	"fmt"
 	"reflect"
 
+	"github.com/opentracing/opentracing-go"
 	"github.com/pkg/errors"
+	"github.com/zdao-pro/sky_blue/pkg/util"
 )
 
 var (
@@ -33,6 +35,13 @@ func NewModel(db *DB) (md *Model) {
 // Exec executes a query without returning any rows.
 // The args are for any placeholder parameters in the query.
 func (m *Model) Exec(c context.Context, query string, args ...interface{}) (res sql.Result, err error) {
+	s := opentracing.SpanFromContext(c)
+	if nil != s {
+		span2 := opentracing.StartSpan(util.FuncName(3), opentracing.ChildOf(s.Context()))
+		span2.SetTag("sql", query)
+		span2.SetTag("args", args)
+		defer span2.Finish()
+	}
 	if m.Tx != nil {
 		return m.Tx.Exec(c, query, args...)
 	}
@@ -42,6 +51,13 @@ func (m *Model) Exec(c context.Context, query string, args ...interface{}) (res 
 // Query executes a query that returns rows, typically a SELECT. The args are
 // for any placeholder parameters in the query.
 func (m *Model) Query(c context.Context, query string, args ...interface{}) (*Rows, error) {
+	s := opentracing.SpanFromContext(c)
+	if nil != s {
+		span2 := opentracing.StartSpan(util.FuncName(3), opentracing.ChildOf(s.Context()))
+		span2.SetTag("sql", query)
+		span2.SetTag("args", args)
+		defer span2.Finish()
+	}
 	if m.Tx != nil {
 		return m.Tx.Query(c, query, args...)
 	}
@@ -52,6 +68,14 @@ func (m *Model) Query(c context.Context, query string, args ...interface{}) (*Ro
 // QueryRow always returns a non-nil value. Errors are deferred until Row's
 // Scan method is called.
 func (m *Model) QueryRow(c context.Context, query string, args ...interface{}) *Row {
+	s := opentracing.SpanFromContext(c)
+	if nil != s {
+		span2 := opentracing.StartSpan(util.FuncName(3), opentracing.ChildOf(s.Context()))
+		span2.SetTag("sql", query)
+		span2.SetTag("args", args)
+		defer span2.Finish()
+	}
+
 	if m.Tx != nil {
 		return m.Tx.QueryRow(c, query, args...)
 	}
@@ -60,6 +84,13 @@ func (m *Model) QueryRow(c context.Context, query string, args ...interface{}) *
 
 //Select ..
 func (m *Model) Select(c context.Context, dest interface{}, query string, args ...interface{}) (err error) {
+	s := opentracing.SpanFromContext(c)
+	if nil != s {
+		span2 := opentracing.StartSpan(util.FuncName(3), opentracing.ChildOf(s.Context()))
+		span2.SetTag("sql", query)
+		span2.SetTag("args", args)
+		defer span2.Finish()
+	}
 	var rs *Rows
 	if m.Tx != nil {
 		rs, err = m.Tx.Query(c, query, args...)

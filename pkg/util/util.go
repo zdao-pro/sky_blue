@@ -4,15 +4,29 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"regexp"
 	"runtime"
 )
 
-//GetFuncName get function name
-func GetFuncName() string {
-	pc := make([]uintptr, 1)
-	runtime.Callers(2, pc)
+var (
+	funcRegex = regexp.MustCompile(`^.+[\\/]([\d\w\.\*\(\)_]+)$`)
+)
+
+// FuncName get func name.
+// 获取函数名(包含文件名前缀)
+func FuncName(skip int) (name string) {
+	pc := make([]uintptr, 2)
+	runtime.Callers(skip, pc)
 	f := runtime.FuncForPC(pc[0])
-	return f.Name()
+	if nil != f {
+		s := f.Name()
+		a := funcRegex.FindStringSubmatch(s)
+		if 2 == len(a) {
+			return a[1]
+		}
+		return s
+	}
+	return "unknown:0"
 }
 
 //GetLocalAddress ...
