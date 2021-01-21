@@ -1,6 +1,7 @@
 package gin
 
 import (
+	"context"
 	"fmt"
 	"html/template"
 	"net"
@@ -157,7 +158,7 @@ func New() *Engine {
 func Default() *Engine {
 	debugPrintWARNINGDefault()
 	engine := New()
-	engine.Use(GetInitHandle(), Trace(), ServiceCheckHandle(), GetAccessLogger(LogConfig{}), Recovery())
+	engine.Use(Trace(), ServiceCheckHandle(), GetAccessLogger(LogConfig{}), Recovery())
 	return engine
 }
 
@@ -367,6 +368,7 @@ func (engine *Engine) RunListener(listener net.Listener) (err error) {
 // ServeHTTP conforms to the http.Handler interface.
 func (engine *Engine) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	c := engine.pool.Get().(*Context)
+	c.Context = context.Background()
 	c.writermem.reset(w)
 	c.Request = req
 	c.reset()

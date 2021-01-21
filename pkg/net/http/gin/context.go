@@ -707,7 +707,7 @@ func (c *Context) ShouldBindUri(obj interface{}) error {
 // See the binding package.
 func (c *Context) ShouldBindWith(obj interface{}, b binding.Binding) error {
 	err := b.Bind(c.Request, obj)
-	if true == checkPram {
+	if true == checkPram && nil != err {
 		c.Exit(101, err)
 	}
 	return err
@@ -944,7 +944,9 @@ func (c *Context) Exit(code int, obj ...interface{}) {
 	c.Header("X-IS-Error-Code", resData["errcode"].(string))
 	c.Header("X-IS-Error-Msg", resData["message"].(string))
 	// fmt.Println(resData)
+	// c.Abort()
 	c.JSON(code, resData)
+	c.AbortWithStatus(code)
 }
 
 // AsciiJSON serializes the given struct as JSON into the response body with unicode to ASCII string.
