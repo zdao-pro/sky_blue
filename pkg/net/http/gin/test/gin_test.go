@@ -93,6 +93,12 @@ type ColorGroup struct {
 	Colors []string
 }
 
+//RegisterInfo ..
+type RegisterInfo struct {
+	Name string `form:"name" validate:"required"`
+	Age  int    `form:"age" validate:"min=1"` //required:表示必传 min表示最小值
+}
+
 //Init http server
 func TestGin(t *testing.T) {
 	log.Init(nil)
@@ -161,6 +167,12 @@ func TestGin(t *testing.T) {
 		// 	Name:   "Reds",
 		// 	Colors: []string{"Crimson", "Red", "Ruby", "Maroon"},
 		// }
+		var registerParm RegisterInfo
+		//解析请求参数到registerParm
+		err := c.ShouldBindQuery(&registerParm)
+		if nil != err {
+			return
+		}
 		r := request.NewRequest(c.Context)
 		p := map[string]interface{}{
 			"token": "eeerwrwwe",
@@ -170,8 +182,8 @@ func TestGin(t *testing.T) {
 			panic(err)
 		}
 		fmt.Println(rs.Content())
-
-		c.Exit(int(ecode.ParamInvaidErr))
+		c.Exit(int(ecode.PermissionErr))
+		// c.Exit(int(ecode.ParamInvaidErr))
 		// c.JSON(200, group)
 		// err := c.ShouldBindQuery(&p)
 		// if nil != err {
