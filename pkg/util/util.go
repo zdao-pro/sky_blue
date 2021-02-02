@@ -9,6 +9,10 @@ import (
 	"runtime"
 	"sort"
 	"strings"
+
+	"crypto/md5"
+
+	"github.com/google/uuid"
 )
 
 var (
@@ -82,4 +86,18 @@ func ParseQuery(url string) (map[string]string, error) {
 		query[v[0]] = v[1]
 	}
 	return query, nil
+}
+
+// GetUUID 获取uuid
+func GetUUID() string {
+	id, err := uuid.NewUUID()
+	if err != nil {
+		return ""
+	}
+	return id.String()
+}
+
+// MD5 返回16进制字符串(32位)
+func MD5(src []byte) string {
+	return fmt.Sprintf("%x", md5.Sum(src))
 }

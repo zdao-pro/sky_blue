@@ -20,3 +20,14 @@ func TestFuncName(t *testing.T) {
 func TestLocalAddress(t *testing.T) {
 	fmt.Println(GetLocalAddress())
 }
+
+func TestMD5(t *testing.T) {
+	str := "5205720"
+	s := MD5([]byte(str))
+	t.Error(s)
+}
+
+func TestGetUUID(t *testing.T) {
+	str := GetUUID()
+	t.Error(str)
+}
