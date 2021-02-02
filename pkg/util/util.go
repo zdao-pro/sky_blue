@@ -1,11 +1,14 @@
 package util
 
 import (
+	"errors"
 	"fmt"
 	"net"
 	"os"
 	"regexp"
 	"runtime"
+	"sort"
+	"strings"
 )
 
 var (
@@ -49,4 +52,34 @@ func GetLocalAddress() string {
 		}
 	}
 	return "127.0.0.1"
+}
+
+// JoinStringsInASCIIAscend 对map按key字典升序拼接
+/**
+	* @param sep 拼接字符串
+**/
+func JoinStringsInASCIIAscend(data map[string]interface{}, sep string) string {
+	var keyList []string
+	for key := range data {
+		keyList = append(keyList, key)
+	}
+	sort.Strings(keyList)
+	var strList []string
+	for _, key := range keyList {
+		strList = append(strList, fmt.Sprintf("%s=%v", key, data[key]))
+	}
+	return strings.Join(strList, sep)
+}
+
+// ParseQuery 解析参数(a=b&c=q)
+func ParseQuery(url string) (map[string]string, error) {
+	query := make(map[string]string, 0)
+	for _, val := range strings.Split(url, "&") {
+		v := strings.Split(val, "=")
+		if len(v) < 2 {
+			return make(map[string]string, 0), errors.New("query parameter error")
+		}
+		query[v[0]] = v[1]
+	}
+	return query, nil
 }
