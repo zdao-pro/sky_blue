@@ -13,7 +13,11 @@ var (
 )
 
 func init() {
-
+	/*
+		export APOLLO_META_ADDR=118.178.140.41:58079
+		export APOLLO_APP_ID=backend_server
+	*/
+	RegistDriver("apollo", &appoloDriver{})
 }
 
 //Init 初始化配置中心
