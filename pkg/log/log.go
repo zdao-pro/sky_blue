@@ -31,6 +31,10 @@ type Config struct {
 
 var logConfig Config
 
+func init() {
+	Init(nil)
+}
+
 //Init ...
 func Init(conf *Config) {
 	if nil == conf {

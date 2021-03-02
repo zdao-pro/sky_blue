@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/zdao-pro/sky_blue/pkg/peach"
-	_ "github.com/zdao-pro/sky_blue/pkg/peach/apollo"
 )
 
 type jsonData struct {
@@ -14,8 +13,8 @@ type jsonData struct {
 }
 
 func TestString(t *testing.T) {
-	peach.Init(peach.PeachDriverApollo, "zdao_backend.sky_blue")
-	a, _ := peach.Get("msyql_test.yaml").String()
+	// peach.Init(peach.PeachDriverApollo, "zdao_backend.sky_blue")
+	a, _ := peach.Get("db_ms_wallet.yaml").String()
 	fmt.Println(a)
 }
 
