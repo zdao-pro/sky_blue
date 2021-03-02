@@ -2,6 +2,7 @@ package request
 
 import (
 	"fmt"
+	"os"
 	"strings"
 	"sync/atomic"
 
@@ -16,6 +17,31 @@ func KeyNamed(key string) string {
 //Map ..
 type Map struct {
 	values atomic.Value
+}
+
+func init() {
+	apiServerListStr := os.Getenv("API_SERVER_LIST")
+	apiServerList := strings.Split(apiServerListStr, ",")
+	if 0 < len(apiServerList) {
+		f := make(map[string]Upstream)
+		u := Upstream{
+			Server: apiServerList,
+		}
+		f["api_server"] = u
+		src, ok := UpstreamMap.values.Load().(map[string]Upstream)
+		if ok {
+			for k, v := range src {
+				src[k] = v
+			}
+
+			for k, v := range f {
+				src[k] = v
+			}
+			UpstreamMap.Store(src)
+			return
+		}
+		UpstreamMap.Store(f)
+	}
 }
 
 var (
