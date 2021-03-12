@@ -19,6 +19,14 @@ var (
 	AppID string
 	// DeployEnv deploy env where app at.
 	DeployEnv string
+	// Color is the identification of different experimental group in one caster cluster.
+	Color string
+	// DiscoveryNodes is seed nodes.
+	DiscoveryNodes string
+	// Region available region where app at.
+	Region string
+	// Zone available zone where app at.
+	Zone string
 )
 
 func init() {

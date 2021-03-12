@@ -37,6 +37,11 @@ func KVString(k, v string) D {
 	}
 }
 
+// KVInt construct D with int value.
+func KVInt(key string, value int) D {
+	return D{Key: key, Type: IntTpye, Value: value}
+}
+
 // KVInt64 construct D with int64 value.
 func KVInt64(key string, value int64) D {
 	return D{Key: key, Type: Int64Type, Value: value}
