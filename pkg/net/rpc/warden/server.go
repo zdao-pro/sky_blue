@@ -11,8 +11,6 @@ import (
 	"time"
 
 	"github.com/go-kratos/kratos/pkg/conf/dsn"
-	"github.com/go-kratos/kratos/pkg/net/trace"
-	xtime "github.com/go-kratos/kratos/pkg/time"
 	"github.com/zdao-pro/sky_blue/pkg/log"
 	nmd "github.com/zdao-pro/sky_blue/pkg/net/metadata"
 	"github.com/zdao-pro/sky_blue/pkg/net/rpc/warden/ratelimiter"
@@ -26,7 +24,6 @@ import (
 	_ "google.golang.org/grpc/encoding/gzip" // NOTE: use grpc gzip by header grpc-accept-encoding
 	"google.golang.org/grpc/keepalive"
 	"google.golang.org/grpc/metadata"
-	"google.golang.org/grpc/peer"
 	"google.golang.org/grpc/reflection"
 )
 
@@ -35,12 +32,12 @@ var (
 	_defaultSerConf = &ServerConfig{
 		Network:           "tcp",
 		Addr:              "0.0.0.0:9000",
-		Timeout:           xtime.Duration(time.Second),
-		IdleTimeout:       xtime.Duration(time.Second * 180),
-		MaxLifeTime:       xtime.Duration(time.Hour * 2),
-		ForceCloseWait:    xtime.Duration(time.Second * 20),
-		KeepAliveInterval: xtime.Duration(time.Second * 60),
-		KeepAliveTimeout:  xtime.Duration(time.Second * 20),
+		Timeout:           time.Duration(time.Second),
+		IdleTimeout:       time.Duration(time.Second * 180),
+		MaxLifeTime:       time.Duration(time.Hour * 2),
+		ForceCloseWait:    time.Duration(time.Second * 20),
+		KeepAliveInterval: time.Duration(time.Second * 60),
+		KeepAliveTimeout:  time.Duration(time.Second * 20),
 	}
 	_abortIndex int8 = math.MaxInt8 / 2
 )
@@ -52,20 +49,20 @@ type ServerConfig struct {
 	// Addr is grpc listen addr,default value is 0.0.0.0:9000
 	Addr string `dsn:"address"`
 	// Timeout is context timeout for per rpc call.
-	Timeout xtime.Duration `dsn:"query.timeout"`
+	Timeout time.Duration `dsn:"query.timeout"`
 	// IdleTimeout is a duration for the amount of time after which an idle connection would be closed by sending a GoAway.
 	// Idleness duration is defined since the most recent time the number of outstanding RPCs became zero or the connection establishment.
-	IdleTimeout xtime.Duration `dsn:"query.idleTimeout"`
+	IdleTimeout time.Duration `dsn:"query.idleTimeout"`
 	// MaxLifeTime is a duration for the maximum amount of time a connection may exist before it will be closed by sending a GoAway.
 	// A random jitter of +/-10% will be added to MaxConnectionAge to spread out connection storms.
-	MaxLifeTime xtime.Duration `dsn:"query.maxLife"`
+	MaxLifeTime time.Duration `dsn:"query.maxLife"`
 	// ForceCloseWait is an additive period after MaxLifeTime after which the connection will be forcibly closed.
-	ForceCloseWait xtime.Duration `dsn:"query.closeWait"`
+	ForceCloseWait time.Duration `dsn:"query.closeWait"`
 	// KeepAliveInterval is after a duration of this time if the server doesn't see any activity it pings the client to see if the transport is still alive.
-	KeepAliveInterval xtime.Duration `dsn:"query.keepaliveInterval"`
+	KeepAliveInterval time.Duration `dsn:"query.keepaliveInterval"`
 	// KeepAliveTimeout  is After having pinged for keepalive check, the server waits for a duration of Timeout and if no activity is seen even after that
 	// the connection is closed.
-	KeepAliveTimeout xtime.Duration `dsn:"query.keepaliveTimeout"`
+	KeepAliveTimeout time.Duration `dsn:"query.keepaliveTimeout"`
 	// LogFlag to control log behaviour. e.g. LogFlag: warden.LogFlagDisableLog.
 	// Disable: 1 DisableArgs: 2 DisableInfo: 4
 	LogFlag int8 `dsn:"query.logFlag"`
@@ -86,7 +83,7 @@ func (s *Server) handle() grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req interface{}, args *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
 		var (
 			cancel func()
-			addr   string
+			// addr   string
 		)
 		s.mutex.RLock()
 		conf := s.conf
@@ -108,31 +105,31 @@ func (s *Server) handle() grpc.UnaryServerInterceptor {
 		defer cancel()
 
 		// get grpc metadata(trace & remote_ip & color)
-		var t trace.Trace
+		// var t trace.Trace
 		cmd := nmd.MD{}
 		if gmd, ok := metadata.FromIncomingContext(ctx); ok {
-			t, _ = trace.Extract(trace.GRPCFormat, gmd)
+			// t, _ = trace.Extract(trace.GRPCFormat, gmd)
 			for key, vals := range gmd {
 				if nmd.IsIncomingKey(key) {
 					cmd[key] = vals[0]
 				}
 			}
 		}
-		if t == nil {
-			t = trace.New(args.FullMethod)
-		} else {
-			t.SetTitle(args.FullMethod)
-		}
+		// if t == nil {
+		// 	t = trace.New(args.FullMethod)
+		// } else {
+		// 	t.SetTitle(args.FullMethod)
+		// }
 
-		if pr, ok := peer.FromContext(ctx); ok {
-			addr = pr.Addr.String()
-			t.SetTag(trace.String(trace.TagAddress, addr))
-		}
-		defer t.Finish(&err)
+		// if pr, ok := peer.FromContext(ctx); ok {
+		// addr = pr.Addr.String()
+		// t.SetTag(trace.String(trace.TagAddress, addr))
+		// }
+		// defer t.Finish(&err)
 
 		// use common meta data context instead of grpc context
 		ctx = nmd.NewContext(ctx, cmd)
-		ctx = trace.NewContext(ctx, t)
+		// ctx = trace.NewContext(ctx, t)
 
 		resp, err = handler(ctx, req)
 		return resp, status.FromError(err).Err()
@@ -198,22 +195,22 @@ func (s *Server) SetConfig(conf *ServerConfig) (err error) {
 		conf = _defaultSerConf
 	}
 	if conf.Timeout <= 0 {
-		conf.Timeout = xtime.Duration(time.Second)
+		conf.Timeout = time.Duration(time.Second)
 	}
 	if conf.IdleTimeout <= 0 {
-		conf.IdleTimeout = xtime.Duration(time.Second * 60)
+		conf.IdleTimeout = time.Duration(time.Second * 60)
 	}
 	if conf.MaxLifeTime <= 0 {
-		conf.MaxLifeTime = xtime.Duration(time.Hour * 2)
+		conf.MaxLifeTime = time.Duration(time.Hour * 2)
 	}
 	if conf.ForceCloseWait <= 0 {
-		conf.ForceCloseWait = xtime.Duration(time.Second * 20)
+		conf.ForceCloseWait = time.Duration(time.Second * 20)
 	}
 	if conf.KeepAliveInterval <= 0 {
-		conf.KeepAliveInterval = xtime.Duration(time.Second * 60)
+		conf.KeepAliveInterval = time.Duration(time.Second * 60)
 	}
 	if conf.KeepAliveTimeout <= 0 {
-		conf.KeepAliveTimeout = xtime.Duration(time.Second * 20)
+		conf.KeepAliveTimeout = time.Duration(time.Second * 20)
 	}
 	if conf.Addr == "" {
 		conf.Addr = "0.0.0.0:9000"

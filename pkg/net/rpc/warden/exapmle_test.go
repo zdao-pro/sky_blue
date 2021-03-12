@@ -41,7 +41,7 @@ func (s *helloServer) StreamHello(ss pb.Greeter_StreamHelloServer) error {
 }
 
 func ExampleServer() {
-	s := warden.NewServer(&warden.ServerConfig{Timeout: xtime.Duration(time.Second), Addr: ":8080"})
+	s := warden.NewServer(&warden.ServerConfig{Timeout: time.Duration(time.Second), Addr: ":8080"})
 	// apply server interceptor middleware
 	s.Use(func(ctx context.Context, req interface{}, args *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
 		newctx, cancel := context.WithTimeout(ctx, time.Second*10)
@@ -55,8 +55,8 @@ func ExampleServer() {
 
 func ExampleClient() {
 	client := warden.NewClient(&warden.ClientConfig{
-		Dial:    xtime.Duration(time.Second * 10),
-		Timeout: xtime.Duration(time.Second * 10),
+		Dial:    time.Duration(time.Second * 10),
+		Timeout: time.Duration(time.Second * 10),
 		Breaker: &breaker.Config{
 			Window:  xtime.Duration(3 * time.Second),
 			Bucket:  10,

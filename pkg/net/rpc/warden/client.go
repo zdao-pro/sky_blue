@@ -16,8 +16,6 @@ import (
 	"github.com/go-kratos/kratos/pkg/conf/flagvar"
 	"github.com/go-kratos/kratos/pkg/ecode"
 	"github.com/go-kratos/kratos/pkg/net/netutil/breaker"
-	"github.com/go-kratos/kratos/pkg/net/trace"
-	xtime "github.com/go-kratos/kratos/pkg/time"
 	"github.com/zdao-pro/sky_blue/pkg/env"
 	"github.com/zdao-pro/sky_blue/pkg/naming"
 	nmd "github.com/zdao-pro/sky_blue/pkg/net/metadata"
@@ -38,11 +36,11 @@ var _grpcTarget flagvar.StringVars
 var (
 	_once           sync.Once
 	_defaultCliConf = &ClientConfig{
-		Dial:              xtime.Duration(time.Second * 10),
-		Timeout:           xtime.Duration(time.Millisecond * 250),
+		Dial:              time.Duration(time.Second * 10),
+		Timeout:           time.Duration(time.Millisecond * 250),
 		Subset:            50,
-		KeepAliveInterval: xtime.Duration(time.Second * 60),
-		KeepAliveTimeout:  xtime.Duration(time.Second * 20),
+		KeepAliveInterval: time.Duration(time.Second * 60),
+		KeepAliveTimeout:  time.Duration(time.Second * 20),
 	}
 	_defaultClient *Client
 )
@@ -62,16 +60,16 @@ func init() {
 
 // ClientConfig is rpc client conf.
 type ClientConfig struct {
-	Dial                   xtime.Duration
-	Timeout                xtime.Duration
+	Dial                   time.Duration
+	Timeout                time.Duration
 	Breaker                *breaker.Config
 	Method                 map[string]*ClientConfig
 	Clusters               []string
 	Zone                   string
 	Subset                 int
 	NonBlock               bool
-	KeepAliveInterval      xtime.Duration
-	KeepAliveTimeout       xtime.Duration
+	KeepAliveInterval      time.Duration
+	KeepAliveTimeout       time.Duration
 	KeepAliveWithoutStream bool
 }
 
@@ -101,24 +99,24 @@ func WithTimeoutCallOption(timeout time.Duration) *TimeoutCallOption {
 func (c *Client) handle() grpc.UnaryClientInterceptor {
 	return func(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) (err error) {
 		var (
-			ok     bool
-			t      trace.Trace
+			ok bool
+			// t      trace.Trace
 			gmd    metadata.MD
 			conf   *ClientConfig
 			cancel context.CancelFunc
-			addr   string
-			p      peer.Peer
+			// addr   string
+			p peer.Peer
 		)
 		var ec ecode.Codes = ecode.OK
 		// apm tracing
-		if t, ok = trace.FromContext(ctx); ok {
-			t = t.Fork("", method)
-			defer t.Finish(&err)
-		}
+		// if t, ok = trace.FromContext(ctx); ok {
+		// 	t = t.Fork("", method)
+		// 	defer t.Finish(&err)
+		// }
 
 		// setup metadata
 		gmd = baseMetadata()
-		trace.Inject(t, trace.GRPCFormat, gmd)
+		// trace.Inject(t, trace.GRPCFormat, gmd)
 		c.mutex.RLock()
 		if conf, ok = c.conf.Method[method]; !ok {
 			conf = c.conf
@@ -141,7 +139,8 @@ func (c *Client) handle() grpc.UnaryClientInterceptor {
 		if timeOpt != nil && timeOpt.Timeout > 0 {
 			ctx, cancel = context.WithTimeout(nmd.WithContext(ctx), timeOpt.Timeout)
 		} else {
-			_, ctx, cancel = conf.Timeout.Shrink(ctx)
+			// _, ctx, cancel = conf.Timeout.Shrink(ctx)
+			ctx, cancel = context.WithTimeout(ctx, conf.Timeout)
 		}
 
 		defer cancel()
@@ -164,12 +163,12 @@ func (c *Client) handle() grpc.UnaryClientInterceptor {
 			ec = status.ToEcode(gst)
 			err = errors.WithMessage(ec, gst.Message())
 		}
-		if p.Addr != nil {
-			addr = p.Addr.String()
-		}
-		if t != nil {
-			t.SetTag(trace.String(trace.TagAddress, addr), trace.String(trace.TagComment, ""))
-		}
+		// if p.Addr != nil {
+		// 	addr = p.Addr.String()
+		// }
+		// if t != nil {
+		// 	t.SetTag(trace.String(trace.TagAddress, addr), trace.String(trace.TagComment, ""))
+		// }
 		return
 	}
 }
@@ -216,19 +215,19 @@ func (c *Client) SetConfig(conf *ClientConfig) (err error) {
 		conf = _defaultCliConf
 	}
 	if conf.Dial <= 0 {
-		conf.Dial = xtime.Duration(time.Second * 10)
+		conf.Dial = time.Duration(time.Second * 10)
 	}
 	if conf.Timeout <= 0 {
-		conf.Timeout = xtime.Duration(time.Millisecond * 250)
+		conf.Timeout = time.Duration(time.Millisecond * 250)
 	}
 	if conf.Subset <= 0 {
 		conf.Subset = 50
 	}
 	if conf.KeepAliveInterval <= 0 {
-		conf.KeepAliveInterval = xtime.Duration(time.Second * 60)
+		conf.KeepAliveInterval = time.Duration(time.Second * 60)
 	}
 	if conf.KeepAliveTimeout <= 0 {
-		conf.KeepAliveTimeout = xtime.Duration(time.Second * 20)
+		conf.KeepAliveTimeout = time.Duration(time.Second * 20)
 	}
 
 	// FIXME(maojian) check Method dial/timeout
