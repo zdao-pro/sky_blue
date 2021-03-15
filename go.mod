@@ -75,6 +75,7 @@ require (
 	github.com/urfave/cli v1.20.0 // indirect
 	github.com/urfave/cli/v2 v2.3.0
 	go.etcd.io/bbolt v1.3.4 // indirect
+	go.etcd.io/etcd v0.0.0-20200402134248-51bdeb39e698
 	go.uber.org/zap v1.14.1 // indirect
 	golang.org/x/crypto v0.0.0-20210220033148-5ea612d1eb83
 	golang.org/x/net v0.0.0-20200625001655-4c5254603344

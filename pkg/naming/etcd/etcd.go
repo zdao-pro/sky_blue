@@ -44,7 +44,7 @@ func init() {
 func addFlag(fs *flag.FlagSet) {
 	// env
 	fs.StringVar(&endpoints, "etcd.endpoints", os.Getenv("ETCD_ENDPOINTS"), "etcd.endpoints is etcd endpoints. value: 127.0.0.1:2379,127.0.0.2:2379 etc.")
-	fs.StringVar(&etcdPrefix, "etcd.prefix", defaultString("ETCD_PREFIX", "kratos_etcd"), "etcd globe key prefix or use ETCD_PREFIX env variable. value etcd_prefix etc.")
+	fs.StringVar(&etcdPrefix, "etcd.prefix", defaultString("ETCD_PREFIX", "zdao_blue_etcd"), "etcd globe key prefix or use ETCD_PREFIX env variable. value etcd_prefix etc.")
 }
 
 func defaultString(env, value string) string {
@@ -166,6 +166,12 @@ func (e *EtcdBuilder) Register(ctx context.Context, ins *naming.Instance) (cance
 	} else {
 		e.registry[ins.AppID] = struct{}{}
 	}
+	if ins.Hostname == "" {
+		h, err := os.Hostname()
+		if nil == err {
+			ins.Hostname = h
+		}
+	}
 	e.mutex.Unlock()
 	if err != nil {
 		return
@@ -204,6 +210,7 @@ func (e *EtcdBuilder) Register(ctx context.Context, ins *naming.Instance) (cance
 //注册和续约公用一个操作
 func (e *EtcdBuilder) register(ctx context.Context, ins *naming.Instance) (err error) {
 	prefix := e.keyPrefix(ins)
+	// fmt.Println("key:", prefix)
 	val, _ := json.Marshal(ins)
 
 	ttlResp, err := e.cli.Grant(context.TODO(), int64(registerTTL))

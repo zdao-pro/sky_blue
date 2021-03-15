@@ -30,7 +30,7 @@ import (
 const (
 	_separator = "\001"
 
-	_testAddr = "127.0.0.1:9090"
+	_testAddr = "127.0.0.1:9089"
 )
 
 var (
@@ -172,9 +172,14 @@ func runServer(t *testing.T, interceptors ...grpc.UnaryServerInterceptor) func()
 				outPut = append(outPut, "4")
 				return resp, err
 			})
+		fmt.Println("443")
 		if _, err := server.Start(); err != nil {
 			t.Fatal(err)
 		}
+		// er := server.Run(_testAddr)
+		// if er != nil {
+		// 	fmt.Println("err:", er.Error())
+		// }
 	}
 }
 
@@ -197,7 +202,34 @@ func TestMain(t *testing.T) {
 
 func Test_Warden(t *testing.T) {
 	// xtrace.Init(&xtrace.Config{Addr: "127.0.0.1:9982", Timeout: time.Duration(time.Second * 3)})
-	go _testOnce.Do(runServer(t))
+	// go _testOnce.Do(runServer(t))
+	server = NewServer(&ServerConfig{Addr: _testAddr, Timeout: time.Duration(time.Second)})
+	pb.RegisterGreeterServer(server.Server(), &helloServer{t})
+	server.Use(
+		func(ctx context.Context, req interface{}, args *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+			outPut = append(outPut, "1")
+			resp, err := handler(ctx, req)
+			outPut = append(outPut, "2")
+			return resp, err
+		},
+		func(ctx context.Context, req interface{}, args *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+			outPut = append(outPut, "3")
+			resp, err := handler(ctx, req)
+			outPut = append(outPut, "4")
+			return resp, err
+		})
+	if _, err := server.Start(); err != nil {
+		t.Fatal(err)
+	}
+	for {
+
+	}
+	// er := server.Run(_testAddr)
+	// if er != nil {
+	// 	fmt.Println("err:", er.Error())
+	// }
+
+	// runServer(t)()
 	// go runClient(context.Background(), &clientConfig, t, "trace_test", 0)
 	//testTrace(t, 9982, false)
 	//testInterceptorChain(t)

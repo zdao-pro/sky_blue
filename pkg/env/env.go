@@ -9,6 +9,8 @@ const (
 	DeployEnvDev    = "dev"
 	DeployEnvPre    = "pre"
 	DeployEnvOnline = "online"
+
+	_defaultZone = "SH"
 )
 
 var (
@@ -33,6 +35,17 @@ func init() {
 	Hostname = os.Getenv("HOSTNAME")
 	AppID = os.Getenv("APPID")
 	DeployEnv = os.Getenv("DEPLOYENV")
+	Zone = os.Getenv("ZONE")
+	if Zone == "" {
+		Zone = _defaultZone
+	}
+
+	if Hostname == "" {
+		h, err := os.Hostname()
+		if err == nil {
+			Hostname = h
+		}
+	}
 }
 
 //GetAppID 获取应用ID
