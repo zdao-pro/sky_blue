@@ -22,6 +22,9 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
+	"github.com/zdao-pro/sky_blue/pkg/naming"
+	"github.com/zdao-pro/sky_blue/pkg/naming/etcd"
+	"go.etcd.io/etcd/clientv3"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -203,6 +206,21 @@ func TestMain(t *testing.T) {
 func Test_Warden(t *testing.T) {
 	// xtrace.Init(&xtrace.Config{Addr: "127.0.0.1:9982", Timeout: time.Duration(time.Second * 3)})
 	// go _testOnce.Do(runServer(t))
+	c := clientv3.Config{
+		Endpoints: []string{"127.0.0.1:2379"},
+	}
+	b, err := etcd.New(&c)
+	if nil != err {
+		fmt.Println(err.Error())
+	}
+	in := naming.Instance{
+		AppID:    "jim",
+		Hostname: "hh",
+	}
+	_, err = b.Register(context.Background(), &in)
+	if nil != err {
+		fmt.Println(err.Error())
+	}
 	server = NewServer(&ServerConfig{Addr: _testAddr, Timeout: time.Duration(time.Second)})
 	pb.RegisterGreeterServer(server.Server(), &helloServer{t})
 	server.Use(
