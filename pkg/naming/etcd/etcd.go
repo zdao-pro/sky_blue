@@ -12,6 +12,8 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/zdao-pro/sky_blue/pkg/env"
+
 	"go.etcd.io/etcd/clientv3"
 	"go.etcd.io/etcd/mvcc/mvccpb"
 	"google.golang.org/grpc"
@@ -166,6 +168,9 @@ func (e *EtcdBuilder) Register(ctx context.Context, ins *naming.Instance) (cance
 	} else {
 		e.registry[ins.AppID] = struct{}{}
 	}
+	if ins.Zone == "" {
+		ins.Zone = env.Zone
+	}
 	if ins.Hostname == "" {
 		h, err := os.Hostname()
 		if nil == err {
@@ -210,7 +215,7 @@ func (e *EtcdBuilder) Register(ctx context.Context, ins *naming.Instance) (cance
 //注册和续约公用一个操作
 func (e *EtcdBuilder) register(ctx context.Context, ins *naming.Instance) (err error) {
 	prefix := e.keyPrefix(ins)
-	// fmt.Println("key:", prefix)
+	fmt.Println("key:", prefix)
 	val, _ := json.Marshal(ins)
 
 	ttlResp, err := e.cli.Grant(context.TODO(), int64(registerTTL))
@@ -262,13 +267,14 @@ func (a *appInfo) watch(appID string) {
 
 func (a *appInfo) fetchstore(appID string) (err error) {
 	prefix := fmt.Sprintf("/%s/%s/", etcdPrefix, appID)
+	log.Info("start_prefix:%s", prefix)
 	resp, err := a.e.cli.Get(a.e.ctx, prefix, clientv3.WithPrefix())
 	if err != nil {
 		log.Error("etcd: fetch client.Get(%s) error(%+v)", prefix, err)
 		return err
 	}
-
 	ins, err := a.paserIns(resp)
+	log.Info("prefix:%s,ins:%v", prefix, *ins)
 	if err != nil {
 		return err
 	}

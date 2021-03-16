@@ -216,6 +216,7 @@ func Test_Warden(t *testing.T) {
 	in := naming.Instance{
 		AppID:    "jim",
 		Hostname: "hh",
+		Addrs:    []string{"grpc://" + _testAddr},
 	}
 	_, err = b.Register(context.Background(), &in)
 	if nil != err {

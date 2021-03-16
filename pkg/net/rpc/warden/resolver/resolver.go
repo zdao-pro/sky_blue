@@ -55,6 +55,7 @@ func (b *Builder) Build(target resolver.Target, cc resolver.ClientConn, opts res
 	ss := int64(50)
 	clusters := map[string]struct{}{}
 	str := strings.SplitN(target.Endpoint, "?", 2)
+	log.Info("Endpoint:%s,str:%v", target.Endpoint, str)
 	if len(str) == 0 {
 		return nil, errors.Errorf("warden resolver: parse target.Endpoint(%s) failed!err:=endpoint is empty", target.Endpoint)
 	} else if len(str) == 2 {
@@ -122,6 +123,7 @@ func (r *Resolver) updateproc() {
 		}
 		if ins, ok := r.nr.Fetch(context.Background()); ok {
 			instances, _ := ins.Instances[r.zone]
+			log.Info("instances:%v", instances[0])
 			if len(instances) == 0 {
 				for _, value := range ins.Instances {
 					instances = append(instances, value...)
@@ -157,6 +159,6 @@ func (r *Resolver) newAddress(instances []*naming.Instance) {
 		}
 		addrs = append(addrs, addr)
 	}
-	log.Info("resolver: finally get %d instances", len(addrs))
+	log.Info("resolver: finally get %d instances,addrs:%v", len(addrs), addrs)
 	r.cc.NewAddress(addrs)
 }
