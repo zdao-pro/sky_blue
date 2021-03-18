@@ -2,12 +2,16 @@ package queue
 
 import (
 	"context"
+	"sync"
+	"time"
 )
 
 // DefaultTaskQueue the common implement for the task queue
 type DefaultTaskQueue struct {
-	taskQueue        BlockedQueue
-	taskExcutorSlice []TaskExcutor
+	taskQueue BlockedQueue
+	wg        sync.WaitGroup
+	isStop    bool
+	taskNum   int
 }
 
 // NewDefaultTaskQueue ..
@@ -20,6 +24,7 @@ func NewDefaultTaskQueue(taskNum int) *DefaultTaskQueue {
 // SubmitTask ..
 func (t *DefaultTaskQueue) SubmitTask(task Task) bool {
 	if err := t.taskQueue.Push(context.Background(), task); err == nil {
+		t.wg.Add(1)
 		return true
 	}
 	return false
@@ -27,16 +32,24 @@ func (t *DefaultTaskQueue) SubmitTask(task Task) bool {
 
 // SetParallelTaskNum ..
 func (t *DefaultTaskQueue) SetParallelTaskNum(taskNum int) {
-	t.taskExcutorSlice = make([]TaskExcutor, taskNum)
-	for i := 1; i <= taskNum; i++ {
-		t.taskExcutorSlice = append(t.taskExcutorSlice, &DefaultTaskExcutor{})
-	}
+	t.taskNum = taskNum
 }
 
 // Start ..
 func (t *DefaultTaskQueue) Start() {
-	for _, excutor := range t.taskExcutorSlice {
-		excutor.Start()
+	t.isStop = true
+	for i := 1; i <= t.taskNum; i++ {
+		go func() {
+			for {
+				if true == t.isStop {
+					if v, err := t.taskQueue.Pop(time.Millisecond * 5); err == nil {
+						task := v.(Task)
+						task.Run()
+						t.wg.Done()
+					}
+				}
+			}
+		}()
 	}
 }
 
@@ -47,12 +60,16 @@ func (t *DefaultTaskQueue) TaskSize() int {
 
 // Close ..
 func (t *DefaultTaskQueue) Close() {
-	for _, excutor := range t.taskExcutorSlice {
-		excutor.Close()
-	}
+
 }
 
 // Wait ..
 func (t *DefaultTaskQueue) Wait(ctx context.Context) error {
-
+	go func() {
+		t.wg.Wait()
+	}()
+	select {
+	case <-ctx.Done():
+		return ErrWaitTimeOut
+	}
 }

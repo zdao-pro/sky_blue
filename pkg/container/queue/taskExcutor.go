@@ -1,7 +1,7 @@
 package queue
 
 import (
-	"time"
+	"context"
 )
 
 // TaskExcutor the real excutor of the task
@@ -20,5 +20,5 @@ type TaskQueue interface {
 	Start()
 	TaskSize() int
 	Close()
-	Wait(time.Duration) error
+	Wait(context.Context) error
 }
