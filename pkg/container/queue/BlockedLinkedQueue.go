@@ -8,15 +8,21 @@ import (
 	"context"
 	"sync"
 	"time"
-
-	"golang.org/x/sync/semaphore"
 )
 
 // BlockedLinkQueue 链表阻塞队列
 type BlockedLinkQueue struct {
-	list *list.List
-	mu   *sync.Mutex
-	sema *semaphore.Weighted
+	list     *list.List
+	mu       sync.Mutex
+	notEmpty chan struct{}
+}
+
+// NewBlockedLinkQueue build the NewBlockedLinkQueue pointer
+func NewBlockedLinkQueue() *BlockedLinkQueue {
+	return &BlockedLinkQueue{
+		list:     list.New(),
+		notEmpty: make(chan struct{}, 300),
+	}
 }
 
 // Push push the element
@@ -24,21 +30,23 @@ func (b *BlockedLinkQueue) Push(ctx context.Context, v interface{}) error {
 	b.mu.Lock()
 	defer b.mu.Unlock()
 	b.list.PushFront(v)
-	b.sema.Release(1)
+	b.notEmpty <- struct{}{}
 	return nil
 }
 
 // Pop pop the element
-func (b *BlockedLinkQueue) Pop(waitTime time.Duration) (interface{}, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), waitTime)
+func (b *BlockedLinkQueue) Pop(timeOut time.Duration) (interface{}, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), timeOut)
 	defer cancel()
-	err := b.sema.Acquire(ctx, 1)
-	if err == nil {
-		b.mu.Lock()
-		defer b.mu.Unlock()
-		if e := b.pop(); err != nil {
-			return e.Value, nil
-		}
+	select {
+	case <-b.notEmpty:
+	case <-ctx.Done():
+		return nil, ErrWaitTimeOut
+	}
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	if e := b.pop(); e != nil {
+		return e.Value, nil
 	}
 	return nil, ErrWaitTimeOut
 }
@@ -49,7 +57,7 @@ func (b *BlockedLinkQueue) Len() int {
 }
 
 func (b *BlockedLinkQueue) pop() *list.Element {
-	e := b.list.Front()
+	e := b.list.Back()
 	if e != nil {
 		b.list.Remove(e)
 	}

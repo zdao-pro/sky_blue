@@ -16,7 +16,9 @@ type DefaultTaskQueue struct {
 
 // NewDefaultTaskQueue ..
 func NewDefaultTaskQueue(taskNum int) *DefaultTaskQueue {
-	q := &DefaultTaskQueue{}
+	q := &DefaultTaskQueue{
+		taskQueue: NewBlockedLinkQueue(),
+	}
 	q.SetParallelTaskNum(taskNum)
 	return q
 }
@@ -60,11 +62,13 @@ func (t *DefaultTaskQueue) TaskSize() int {
 
 // Close ..
 func (t *DefaultTaskQueue) Close() {
-
+	t.isStop = false
 }
 
 // Wait ..
-func (t *DefaultTaskQueue) Wait(ctx context.Context) error {
+func (t *DefaultTaskQueue) Wait(timeOut time.Duration) error {
+	ctx, cancel := context.WithTimeout(context.Background(), timeOut)
+	defer cancel()
 	go func() {
 		t.wg.Wait()
 	}()
