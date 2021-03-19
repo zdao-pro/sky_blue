@@ -1,12 +1,15 @@
 package queue
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"testing"
 	"time"
 
 	"golang.org/x/sync/semaphore"
+
+	"encoding/gob"
 
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -74,18 +77,18 @@ func TestTaskQueueInit(t *testing.T) {
 }
 
 type TaskMock struct {
-	i int
+	I int
 }
 
 func (m *TaskMock) Run() error {
 	time.Sleep(time.Second)
-	fmt.Println("hhhhhhhhhhhhhhhh:", m.i)
+	fmt.Println("hhhhhhhhhhhhhhhh:", m.I)
 	return nil
 }
 
 func NewTaskMock(a int) *TaskMock {
 	return &TaskMock{
-		i: a,
+		I: a,
 	}
 }
 
@@ -123,7 +126,7 @@ func TestTaskQueueStop(t *testing.T) {
 		t2 := NewTaskMock(2)
 		q.SubmitTask(t2)
 		q.Start()
-		time.Sleep(2*time.Second)
+		time.Sleep(2 * time.Second)
 		q.Close()
 		t3 := NewTaskMock(3)
 		q.SubmitTask(t3)
@@ -133,6 +136,90 @@ func TestTaskQueueStop(t *testing.T) {
 
 		err := q.Wait(7 * time.Second)
 		So(err, ShouldNotBeNil)
-		
+
+	})
+}
+
+func TestGob(t *testing.T) {
+	Convey("gob", t, func() {
+		var t1 TaskMock
+		t1.I = 90
+		var w bytes.Buffer
+		enc := gob.NewEncoder(&w)
+		err := enc.Encode(&t1)
+		So(err, ShouldBeNil)
+
+		dec := gob.NewDecoder(&w)
+		var t2 TaskMock
+		err = dec.Decode(&t2)
+		So(err, ShouldBeNil)
+		if err == nil {
+			t2.Run()
+		}
+	})
+}
+
+type PriorityTaskMock struct {
+	Score int
+}
+
+func (m *PriorityTaskMock) Run() error {
+	time.Sleep(time.Second)
+	fmt.Println("hhhhhhhhhhhhhhhh,score:", m.Score)
+	return nil
+}
+
+// Less reports whether the element with
+// index i should sort before self.
+func (m *PriorityTaskMock) Less(i interface{}) bool {
+	if p, ok := i.(*PriorityTaskMock); ok {
+		return m.Score < p.Score
+	}
+	return false
+}
+
+func NewPriorityTaskMock(a int) *PriorityTaskMock {
+	return &PriorityTaskMock{
+		Score: a,
+	}
+}
+
+func TestPriorityTaskQueue(t *testing.T) {
+	Convey("TestPriorityTaskQueue", t, func() {
+		q := NewPriorityBlockedQueue()
+		So(q, ShouldNotBeNil)
+		t1 := NewPriorityTaskMock(12)
+
+		ctx := context.Background()
+		q.Push(ctx, t1)
+
+		So(q.Len(), ShouldEqual, 1)
+
+		_, err := q.Pop(5 * time.Millisecond)
+		So(q.Len(), ShouldEqual, 0)
+		So(err, ShouldBeNil)
+	})
+}
+
+func TestPriorityTaskQueueInsert(t *testing.T) {
+	Convey("init TaskQueue Insert", t, func() {
+		num := 1
+		q := NewDefaultPriorityTaskQueue(num)
+		So(q, ShouldNotBeNil)
+		t1 := NewPriorityTaskMock(67)
+		q.SubmitPriorityTask(t1)
+
+		t2 := NewPriorityTaskMock(2)
+		q.SubmitPriorityTask(t2)
+
+		t3 := NewPriorityTaskMock(3)
+		q.SubmitPriorityTask(t3)
+
+		t4 := NewPriorityTaskMock(4)
+		q.SubmitPriorityTask(t4)
+
+		q.Start()
+		err := q.Wait(5 * time.Second)
+		So(err, ShouldNotBeNil)
 	})
 }

@@ -23,6 +23,24 @@ func NewDefaultTaskQueue(taskNum int) *DefaultTaskQueue {
 	return q
 }
 
+// NewDefaultPriorityTaskQueue ..
+func NewDefaultPriorityTaskQueue(taskNum int) *DefaultTaskQueue {
+	q := &DefaultTaskQueue{
+		taskQueue: NewPriorityBlockedQueue(),
+	}
+	q.SetParallelTaskNum(taskNum)
+	return q
+}
+
+// SubmitPriorityTask ..
+func (t *DefaultTaskQueue) SubmitPriorityTask(task PriorityTask) bool {
+	if err := t.taskQueue.Push(context.Background(), task); err == nil {
+		t.wg.Add(1)
+		return true
+	}
+	return false
+}
+
 // SubmitTask ..
 func (t *DefaultTaskQueue) SubmitTask(task Task) bool {
 	if err := t.taskQueue.Push(context.Background(), task); err == nil {
