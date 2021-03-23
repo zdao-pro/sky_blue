@@ -10,8 +10,8 @@ import (
 func main() {
 	fmt.Println(Version)
 	app := cli.NewApp()
-	app.Name = "kratos"
-	app.Usage = "kratos工具集"
+	app.Name = "brick"
+	app.Usage = "brick工具集"
 	app.Version = Version
 	app.Commands = []*cli.Command{
 		{
@@ -24,26 +24,26 @@ func main() {
 		{
 			Name:    "build",
 			Aliases: []string{"b"},
-			Usage:   "kratos build",
+			Usage:   "brick build",
 			Action:  buildAction,
 		},
 		{
 			Name:    "run",
 			Aliases: []string{"r"},
-			Usage:   "kratos run",
+			Usage:   "brick run",
 			Action:  runAction,
 		},
 		{
 			Name:            "tool",
 			Aliases:         []string{"t"},
-			Usage:           "kratos tool",
+			Usage:           "brick tool",
 			Action:          toolAction,
 			SkipFlagParsing: true,
 		},
 		{
 			Name:    "version",
 			Aliases: []string{"v"},
-			Usage:   "kratos version",
+			Usage:   "brick version",
 			Action: func(c *cli.Context) error {
 				fmt.Println(getVersion())
 				return nil
@@ -51,7 +51,7 @@ func main() {
 		},
 		{
 			Name:   "self-upgrade",
-			Usage:  "kratos self-upgrade",
+			Usage:  "brick self-upgrade",
 			Action: upgradeAction,
 		},
 	}

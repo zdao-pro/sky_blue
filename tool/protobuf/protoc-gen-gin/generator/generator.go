@@ -10,11 +10,11 @@ import (
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
 
-	"github.com/go-kratos/kratos/tool/protobuf/pkg/generator"
-	"github.com/go-kratos/kratos/tool/protobuf/pkg/naming"
-	"github.com/go-kratos/kratos/tool/protobuf/pkg/tag"
 	"github.com/go-kratos/kratos/tool/protobuf/pkg/typemap"
-	"github.com/go-kratos/kratos/tool/protobuf/pkg/utils"
+	"github.com/zdao-pro/sky_blue/tool/protobuf/pkg/generator"
+	"github.com/zdao-pro/sky_blue/tool/protobuf/pkg/naming"
+	"github.com/zdao-pro/sky_blue/tool/protobuf/pkg/tag"
+	"github.com/zdao-pro/sky_blue/tool/protobuf/pkg/utils"
 )
 
 type bm struct {
@@ -55,7 +55,7 @@ func (t *bm) generateForFile(file *descriptor.FileDescriptorProto) *plugin.CodeG
 		t.generateBMRoute(file, service, i)
 	}
 
-	resp.Name = proto.String(naming.GenFileName(file, ".bm.go"))
+	resp.Name = proto.String(naming.GenFileName(file, ".gin.go"))
 	resp.Content = proto.String(t.FormattedOutput())
 	t.Output.Reset()
 
@@ -116,8 +116,8 @@ func (t *bm) generateImports(file *descriptor.FileDescriptorProto) {
 	//t.P(`	`,t.pkgs["context"], ` "context"`)
 	t.P(`	"context"`)
 	t.P()
-	t.P(`	bm "github.com/go-kratos/kratos/pkg/net/http/blademaster"`)
-	t.P(`	"github.com/go-kratos/kratos/pkg/net/http/blademaster/binding"`)
+	t.P(`	gin "github.com/zdao-pro/sky_blue/pkg/net/http/gin"`)
+	t.P(`	"github.com/zdao-pro/sky_blue/pkg/net/http/gin/binding"`)
 
 	t.P(`)`)
 	// It's legal to import a message and use it as an input or output for a
@@ -129,7 +129,7 @@ func (t *bm) generateImports(file *descriptor.FileDescriptorProto) {
 	}
 	t.P()
 	t.P(`// to suppressed 'imported but not used warning'`)
-	t.P(`var _ *bm.Context`)
+	t.P(`var _ *gin.Context`)
 	t.P(`var _ context.Context`)
 	t.P(`var _ binding.StructValidator`)
 }
@@ -148,13 +148,13 @@ func (t *bm) generateBMRoute(
 	service *descriptor.ServiceDescriptorProto,
 	index int) {
 	// old mode is generate xx.route.go in the http pkg
-	// new mode is generate route code in the same .bm.go
+	// new mode is generate route code in the same .gin.go
 	// route rule /x{department}/{project-name}/{path_prefix}/method_name
 	// generate each route method
 	servName := naming.ServiceName(service)
 	versionPrefix := naming.GetVersionPrefix(t.GenPkgName)
 	svcName := utils.LcFirst(utils.CamelCase(versionPrefix)) + servName + "Svc"
-	t.P(`var `, svcName, ` `, servName, `BMServer`)
+	t.P(`var `, svcName, ` `, servName, `GinServer`)
 
 	type methodInfo struct {
 		midwares      []string
@@ -203,7 +203,7 @@ func (t *bm) generateBMRoute(
 			methodName:    method.GetName(),
 		})
 
-		t.P(fmt.Sprintf("func %s (c *bm.Context) {", routeName))
+		t.P(fmt.Sprintf("func %s (c *gin.Context) {", routeName))
 		t.P(`	p := new(`, inputType, `)`)
 		requestBinding := ""
 		if t.hasHeaderTag(t.Reg.MessageDefinition(method.GetInputType())) {
@@ -211,10 +211,11 @@ func (t *bm) generateBMRoute(
 		}
 		t.P(`	if err := c.BindWith(p, binding.Default(c.Request.Method, c.Request.Header.Get("Content-Type"))` +
 			requestBinding + `); err != nil {`)
+		t.P(`		c.Exit(101, err`)
 		t.P(`		return`)
 		t.P(`	}`)
 		t.P(`	resp, err := `, svcName, `.`, methName, `(c, p)`)
-		t.P(`	c.JSON(resp, err)`)
+		t.P(`	c.Exit(err.Code(), resp)`)
 		t.P(`}`)
 		t.P(``)
 	}
@@ -222,7 +223,7 @@ func (t *bm) generateBMRoute(
 	// generate route group
 	var midList []string
 	for m := range allMidwareMap {
-		midList = append(midList, m+" bm.HandlerFunc")
+		midList = append(midList, m+" gin.HandlerFunc")
 	}
 
 	sort.Strings(midList)
@@ -230,9 +231,9 @@ func (t *bm) generateBMRoute(
 	// 注册老的路由的方法
 	if isLegacyPkg {
 		funcName := `Register` + utils.CamelCase(versionPrefix) + servName + `Service`
-		t.P(`// `, funcName, ` Register the blademaster route with middleware map`)
+		t.P(`// `, funcName, ` Register the gin server route with middleware map`)
 		t.P(`// midMap is the middleware map, the key is defined in proto`)
-		t.P(`func `, funcName, `(e *bm.Engine, svc `, servName, "BMServer, midMap map[string]bm.HandlerFunc)", ` {`)
+		t.P(`func `, funcName, `(e *gin.Engine, svc `, servName, "GinServer, midMap map[string]gin.HandlerFunc)", ` {`)
 		var keys []string
 		for m := range allMidwareMap {
 			keys = append(keys, m)
@@ -256,9 +257,9 @@ func (t *bm) generateBMRoute(
 		t.P(`	}`)
 	} else {
 		// 新的注册路由的方法
-		var bmFuncName = fmt.Sprintf("Register%sBMServer", servName)
-		t.P(`// `, bmFuncName, ` Register the blademaster route`)
-		t.P(`func `, bmFuncName, `(e *bm.Engine, server `, servName, `BMServer) {`)
+		var bmFuncName = fmt.Sprintf("Register%sGinServer", servName)
+		t.P(`// `, bmFuncName, ` Register the gin server route`)
+		t.P(`func `, bmFuncName, `(e *gin.Engine, server `, servName, `GinServer) {`)
 		t.P(svcName, ` = server`)
 		for _, methInfo := range methList {
 			t.P(`e.`, methInfo.apiInfo.HttpMethod, `("`, methInfo.apiInfo.NewPath, `",`, methInfo.routeFuncName, ` )`)
@@ -289,13 +290,13 @@ func (t *bm) hasHeaderTag(md *typemap.MessageDefinition) bool {
 func (t *bm) generateBMInterface(file *descriptor.FileDescriptorProto, service *descriptor.ServiceDescriptorProto) int {
 	count := 0
 	servName := naming.ServiceName(service)
-	t.P("// " + servName + "BMServer is the server API for " + servName + " service.")
+	t.P("// " + servName + "GinServer is the server API for " + servName + " service.")
 
 	comments, err := t.Reg.ServiceComments(file, service)
 	if err == nil {
 		t.PrintComments(comments)
 	}
-	t.P(`type `, servName, `BMServer interface {`)
+	t.P(`type `, servName, `GinServer interface {`)
 	for _, method := range service.Method {
 		if !t.ShouldGenForMethod(file, service, method) {
 			continue

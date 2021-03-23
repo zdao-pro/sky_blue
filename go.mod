@@ -63,7 +63,7 @@ require (
 	github.com/samuel/go-zookeeper v0.0.0-20180130194729-c4fab1ac1bec // indirect
 	github.com/shima-park/agollo v1.2.7
 	github.com/shirou/gopsutil v2.19.11+incompatible
-	github.com/siddontang/go v0.0.0-20180604090527-bdc77568d726 // indirect
+	github.com/siddontang/go v0.0.0-20180604090527-bdc77568d726
 	github.com/sirupsen/logrus v1.8.1 // indirect
 	github.com/smartystreets/goconvey v1.6.4
 	github.com/spf13/pflag v1.0.5 // indirect
@@ -86,6 +86,7 @@ require (
 	golang.org/x/time v0.0.0-20191024005414-555d28b269f0 // indirect
 	golang.org/x/tools v0.0.0-20200723000907-a7c6fd066f6d // indirect
 	google.golang.org/appengine v1.6.1 // indirect
+	google.golang.org/genproto v0.0.0-20200402124713-8ff61da6d932
 	google.golang.org/grpc v1.29.1
 	gopkg.in/cheggaaa/pb.v1 v1.0.25 // indirect
 	gopkg.in/go-playground/validator.v9 v9.29.1
