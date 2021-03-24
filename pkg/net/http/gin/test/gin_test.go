@@ -179,7 +179,7 @@ func TestGin(t *testing.T) {
 		// }
 		// fmt.Println(rs.Content())
 		fmt.Println(registerParm)
-		c.Exit(int(ecode.PermissionErr))
+		c.Exit(101, ecode.PermissionErr)
 		// c.Exit(int(ecode.ParamInvaidErr))
 		// c.JSON(200, group)
 		// err := c.ShouldBindQuery(&p)

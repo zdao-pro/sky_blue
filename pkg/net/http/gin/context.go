@@ -930,14 +930,25 @@ func (c *Context) Exit(code int, obj ...interface{}) {
 	} else {
 		resData["status"] = 0
 		resData["errcode"] = becode.Error()
+		if 0 < len(obj) {
+			err, ok := obj[0].(ecode.Code)
+			if ok {
+				resData["errcode"] = err.Error()
+				resData["message"] = err.Message()
+			}
+		}
 		code = http.StatusNotAcceptable
 	}
-	resData["message"] = becode.Message()
+	if resData["message"] == "" {
+		resData["message"] = becode.Message()
+	}
+
 	if 0 < len(obj) {
 		err, ok := obj[0].(error)
-		if ok {
+		if ok && resData["message"] == "" {
 			resData["message"] = err.Error()
-		} else {
+		}
+		if !ok {
 			resData["data"] = obj[0]
 		}
 	}
