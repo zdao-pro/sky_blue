@@ -24,7 +24,7 @@ func mapUri(ptr interface{}, m map[string][]string) error {
 
 func mapForm(ptr interface{}, form map[string][]string) error {
 	// fmt.Println("form:", form)
-	return mapFormByTag(ptr, form, "form")
+	return mapFormByTag(ptr, form, "json")
 }
 
 var emptyField = reflect.StructField{}
