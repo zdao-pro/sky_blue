@@ -95,6 +95,10 @@ type RegisterInfo struct {
 	Age  int    `json:"age,omitempty" validate:"min=1"` //required:表示必传 min表示最小值
 }
 
+type ResData struct {
+	ClaimStatus int8 `json:"claim_staus"`
+}
+
 //Init http server
 func TestGin(t *testing.T) {
 	// log.Init(nil)
@@ -179,8 +183,9 @@ func TestGin(t *testing.T) {
 		// }
 		// fmt.Println(rs.Content())
 		fmt.Println(registerParm)
-		c.Exit(101, ecode.PermissionErr)
-		// c.Exit(int(ecode.ParamInvaidErr))
+		// c.Exit(200, registerParm)
+		// c.Exit(101, ecode.PermissionErr)
+		c.Exit(int(ecode.ParamInvaidErr))
 		// c.JSON(200, group)
 		// err := c.ShouldBindQuery(&p)
 		// if nil != err {

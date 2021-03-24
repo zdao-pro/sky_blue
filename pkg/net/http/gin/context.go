@@ -923,6 +923,7 @@ func (c *Context) JSON(code int, obj interface{}) {
 func (c *Context) Exit(code int, obj ...interface{}) {
 	resData := H{}
 	becode := ecode.Code(code)
+	resData["message"] = ""
 	if becode == ecode.OK {
 		resData["status"] = 1
 		resData["errcode"] = ""
