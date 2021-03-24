@@ -142,23 +142,58 @@ func Warnc(ctx context.Context, format string, args ...interface{}) {
 	}
 }
 
-//Error ...
+//Errorc ...
 func Errorc(ctx context.Context, format string, args ...interface{}) {
 	if logConfig._errorPrintFlag {
 		h.Log(ctx, _errorLevel, KVString(_log, fmt.Sprintf(format, args...)))
 	}
 }
 
-//Fetal ...
+//Fetalc ...
 func Fetalc(ctx context.Context, format string, args ...interface{}) {
 	if logConfig._fetalPrintFlag {
 		h.Log(ctx, _fetalLevel, KVString(_log, fmt.Sprintf(format, args...)))
 	}
 }
 
-//Access ...
+//Accessc ...
 func Accessc(ctx context.Context, format string, args ...interface{}) {
 	if logConfig._fetalPrintFlag {
 		h.Log(ctx, _accessLevel, KVString(_log, fmt.Sprintf(format, args...)))
+	}
+}
+
+// Debugv logs a message at the debug log level.
+func Debugv(ctx context.Context, args ...D) {
+	if logConfig._debugPrintFlag {
+		h.Log(ctx, _debugLevel, args...)
+	}
+}
+
+// Infov logs a message at the info log level.
+func Infov(ctx context.Context, args ...D) {
+	if logConfig._infoPrintFlag {
+		h.Log(ctx, _infoLevel, args...)
+	}
+}
+
+// Warnv logs a message at the warning log level.
+func Warnv(ctx context.Context, args ...D) {
+	if logConfig._warnPrintFlag {
+		h.Log(ctx, _warnLevel, args...)
+	}
+}
+
+// Errorv logs a message at the error log level.
+func Errorv(ctx context.Context, args ...D) {
+	if logConfig._errorPrintFlag {
+		h.Log(ctx, _errorLevel, args...)
+	}
+}
+
+// Fatalv logs a message at the error log level.
+func Fatalv(ctx context.Context, args ...D) {
+	if logConfig._fetalPrintFlag {
+		h.Log(ctx, _fetalLevel, args...)
 	}
 }
