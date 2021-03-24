@@ -9,12 +9,8 @@ import (
 
 	"github.com/zdao-pro/sky_blue/pkg/database/sql"
 	"github.com/zdao-pro/sky_blue/pkg/ecode"
-	"github.com/zdao-pro/sky_blue/pkg/log"
 	"github.com/zdao-pro/sky_blue/pkg/net/http/gin"
-	"github.com/zdao-pro/sky_blue/pkg/net/http/request"
 	"github.com/zdao-pro/sky_blue/pkg/net/trace/zipkin"
-	"github.com/zdao-pro/sky_blue/pkg/peach"
-	_ "github.com/zdao-pro/sky_blue/pkg/peach/apollo"
 )
 
 //Server is a gin Engine
@@ -95,31 +91,31 @@ type ColorGroup struct {
 
 //RegisterInfo ..
 type RegisterInfo struct {
-	Name string `form:"name" validate:"required"`
-	Age  int    `form:"age" validate:"min=1"` //required:表示必传 min表示最小值
+	Name string `json:"name,omitempty" validate:"required"`
+	Age  int    `json:"age,omitempty" validate:"min=1"` //required:表示必传 min表示最小值
 }
 
 //Init http server
 func TestGin(t *testing.T) {
-	log.Init(nil)
+	// log.Init(nil)
 	zipkin.Init("gin")
 	defer zipkin.Close()
-	err := peach.Init(peach.PeachDriverApollo, []string{"zdao_backend.sky_blue", "zdao_backend.common"})
-	if nil != err {
-		panic(err)
-	}
+	// err := peach.Init(peach.PeachDriverApollo, []string{"zdao_backend.sky_blue", "zdao_backend.common"})
+	// if nil != err {
+	// 	panic(err)
+	// }
 	// 初始化http request
-	upstreamStr, _ := peach.Get("upstream.yaml").String()
-	request.InitUpstream(upstreamStr)
-	var c sql.Config
-	peach.Get("mysql_test.yaml").UnmarshalYAML(&c)
-	db := sql.NewMySQL(&c)
-	if db == nil {
-		log.Warn("error")
-	}
-	user := UserInfo{
-		Model: sql.NewModel(db),
-	}
+	// upstreamStr, _ := peach.Get("upstream.yaml").String()
+	// request.InitUpstream(upstreamStr)
+	// var c sql.Config
+	// peach.Get("mysql_test.yaml").UnmarshalYAML(&c)
+	// db := sql.NewMySQL(&c)
+	// if db == nil {
+	// 	log.Warn("error")
+	// }
+	// user := UserInfo{
+	// 	Model: sql.NewModel(db),
+	// }
 	// user.Begin(context.Background())
 	// user.Insert("test", 50)
 	// user.Rollback()
@@ -132,17 +128,17 @@ func TestGin(t *testing.T) {
 		// 	Name:   "Reds",
 		// 	Colors: []string{"Crimson", "Red", "Ruby", "Maroon"},
 		// }
-		user.QueryUserByID(c.Context, 145)
-		fmt.Println(user)
-		r := request.NewRequest(c.Context)
-		p := map[string]interface{}{
-			"token": "eee",
-		}
-		rs, err := r.Get("http://127.0.0.1:8080/ping", p)
-		if err != nil {
-			panic(err)
-		}
-		fmt.Println(rs.Content())
+		// user.QueryUserByID(c.Context, 145)
+		// fmt.Println(user)
+		// r := request.NewRequest(c.Context)
+		// p := map[string]interface{}{
+		// 	"token": "eee",
+		// }
+		// rs, err := r.Get("http://127.0.0.1:8080/ping", p)
+		// if err != nil {
+		// 	panic(err)
+		// }
+		// fmt.Println(rs.Content())
 		// log.Infoc(c.Context, "trace test")
 		// fmt.Println("uid:", c.UserID)
 
@@ -173,15 +169,16 @@ func TestGin(t *testing.T) {
 		if nil != err {
 			return
 		}
-		r := request.NewRequest(c.Context)
-		p := map[string]interface{}{
-			"token": "eeerwrwwe",
-		}
-		rs, err := r.Get("https://$user_server/user/token_check", p)
-		if err != nil {
-			panic(err)
-		}
-		fmt.Println(rs.Content())
+		// r := request.NewRequest(c.Context)
+		// p := map[string]interface{}{
+		// 	"token": "eeerwrwwe",
+		// }
+		// rs, err := r.Get("https://$user_server/user/token_check", p)
+		// if err != nil {
+		// 	panic(err)
+		// }
+		// fmt.Println(rs.Content())
+		fmt.Println(registerParm)
 		c.Exit(int(ecode.PermissionErr))
 		// c.Exit(int(ecode.ParamInvaidErr))
 		// c.JSON(200, group)

@@ -2,6 +2,10 @@ package peach
 
 import (
 	"errors"
+	"os"
+	"strings"
+
+	"github.com/zdao-pro/sky_blue/pkg/log"
 )
 
 var (
@@ -18,6 +22,13 @@ func init() {
 		export APOLLO_APP_ID=backend_server
 	*/
 	RegistDriver("apollo", &appoloDriver{})
+	nameSpaceListStr := os.Getenv("APOLLO_APP_NAMESPACE_LIST")
+	log.Info("nameSpaceListStr:%s", nameSpaceListStr)
+	nameSpaceList := strings.Split(nameSpaceListStr, ",")
+	err := Init(PeachDriverApollo, nameSpaceList)
+	if nil != err {
+		panic(err)
+	}
 }
 
 //Init 初始化配置中心
@@ -31,7 +42,7 @@ func Init(driverName string, args ...interface{}) error {
 	DefaultClient, ok = driver.New(args...)
 
 	if ok != nil {
-		return nil
+		return ok
 	}
 	return nil
 }
