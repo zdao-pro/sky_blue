@@ -10,10 +10,10 @@ import (
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
 
-	"github.com/go-kratos/kratos/tool/protobuf/pkg/typemap"
 	"github.com/zdao-pro/sky_blue/tool/protobuf/pkg/generator"
 	"github.com/zdao-pro/sky_blue/tool/protobuf/pkg/naming"
 	"github.com/zdao-pro/sky_blue/tool/protobuf/pkg/tag"
+	"github.com/zdao-pro/sky_blue/tool/protobuf/pkg/typemap"
 	"github.com/zdao-pro/sky_blue/tool/protobuf/pkg/utils"
 )
 
@@ -40,6 +40,7 @@ func (t *bm) Generate(in *plugin.CodeGeneratorRequest) *plugin.CodeGeneratorResp
 			resp.File = append(resp.File, respFile)
 		}
 	}
+	// fmt.Println("wwqrwqrqrqrq")
 	return resp
 }
 
@@ -55,8 +56,9 @@ func (t *bm) generateForFile(file *descriptor.FileDescriptorProto) *plugin.CodeG
 		t.generateBMRoute(file, service, i)
 	}
 
-	resp.Name = proto.String(naming.GenFileName(file, ".gin.go"))
+	resp.Name = proto.String(naming.GenFileName(file, ".bm.go"))
 	resp.Content = proto.String(t.FormattedOutput())
+	// fmt.Println("erwerw")
 	t.Output.Reset()
 
 	t.filesHandled++
@@ -211,11 +213,15 @@ func (t *bm) generateBMRoute(
 		}
 		t.P(`	if err := c.BindWith(p, binding.Default(c.Request.Method, c.Request.Header.Get("Content-Type"))` +
 			requestBinding + `); err != nil {`)
-		t.P(`		c.Exit(101, err`)
+		t.P(`		c.Exit(101, err)`)
 		t.P(`		return`)
 		t.P(`	}`)
 		t.P(`	resp, err := `, svcName, `.`, methName, `(c, p)`)
-		t.P(`	c.Exit(err.Code(), resp)`)
+		t.P(`	if err != nil {`)
+		t.P(`		c.Exit(101, err)`)
+		t.P(`		return`)
+		t.P(`	}`)
+		t.P(`	c.Exit(200, resp)`)
 		t.P(`}`)
 		t.P(``)
 	}

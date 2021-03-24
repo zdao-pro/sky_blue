@@ -17,7 +17,7 @@ import (
 )
 
 var (
-	withBM      bool
+	withGin     bool
 	withGRPC    bool
 	withSwagger bool
 	withEcode   bool
@@ -31,16 +31,17 @@ func protocAction(ctx *cli.Context) (err error) {
 	if len(files) == 0 {
 		files, _ = filepath.Glob("*.proto")
 	}
-	if !withGRPC && !withBM && !withSwagger && !withEcode {
-		withBM = true
+	if !withGRPC && !withGin && !withSwagger && !withEcode {
+		withGin = true
 		withGRPC = true
 		withSwagger = true
 		withEcode = true
 	}
-	if withBM {
+	if withGin {
 		if err = installBMGen(); err != nil {
 			return
 		}
+		// fmt.Println("eeee")
 		if err = genBM(files); err != nil {
 			return
 		}
@@ -104,12 +105,14 @@ func generate(protoc string, files []string) error {
 	gosrc := path.Join(gopath(), "src")
 	ext, err := latestKratos()
 	if err != nil {
+		fmt.Println("uu")
 		return err
 	}
 	line := fmt.Sprintf(protoc, gosrc, ext, pwd)
 	log.Println(line, strings.Join(files, " "))
 	args := strings.Split(line, " ")
 	args = append(args, files...)
+	fmt.Println("lines:", line, "args,", args)
 	cmd := exec.Command(args[0], args[1:]...)
 	cmd.Dir = pwd
 	cmd.Env = os.Environ()

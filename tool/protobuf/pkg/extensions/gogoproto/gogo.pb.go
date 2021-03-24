@@ -3,10 +3,15 @@
 
 package gogoproto // import "github.com/go-kratos/kratos/tool/protobuf/pkg/extensions/gogoproto"
 
-import proto "github.com/golang/protobuf/proto"
-import fmt "fmt"
-import math "math"
-import descriptor "github.com/golang/protobuf/protoc-gen-go/descriptor"
+import (
+	fmt "fmt"
+
+	proto "github.com/golang/protobuf/proto"
+
+	math "math"
+
+	descriptor "github.com/golang/protobuf/protoc-gen-go/descriptor"
+)
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
@@ -22,7 +27,7 @@ const _ = proto.ProtoPackageIsVersion2 // please upgrade the proto package
 var E_GoprotoEnumPrefix = &proto.ExtensionDesc{
 	ExtendedType:  (*descriptor.EnumOptions)(nil),
 	ExtensionType: (*bool)(nil),
-	Field:         62001,
+	Field:         62011,
 	Name:          "gogoproto.goproto_enum_prefix",
 	Tag:           "varint,62001,opt,name=goproto_enum_prefix,json=goprotoEnumPrefix",
 	Filename:      "gogo.proto",

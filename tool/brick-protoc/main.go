@@ -13,9 +13,9 @@ func main() {
 	app.Usage = "protobuf生成工具"
 	app.Flags = []cli.Flag{
 		&cli.BoolFlag{
-			Name:        "bm",
-			Usage:       "whether to use BM for generation",
-			Destination: &withBM,
+			Name:        "gin",
+			Usage:       "whether to use Gin API File for generation",
+			Destination: &withGin,
 		},
 		&cli.BoolFlag{
 			Name:        "grpc",

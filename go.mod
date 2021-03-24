@@ -36,7 +36,7 @@ require (
 	github.com/gohouse/gorose/v2 v2.1.7
 	github.com/golang/groupcache v0.0.0-20200121045136-8c9f03a8e57e // indirect
 	github.com/golang/mock v1.3.1 // indirect
-	github.com/golang/protobuf v1.4.2
+	github.com/golang/protobuf v1.5.1
 	github.com/google/uuid v1.1.4
 	github.com/gorilla/websocket v1.4.2 // indirect
 	github.com/grpc-ecosystem/go-grpc-middleware v1.2.0 // indirect
@@ -54,7 +54,7 @@ require (
 	github.com/otokaze/mock v0.0.0-20190125081256-8282b7a7c7c3 // indirect
 	github.com/philchia/agollo v0.0.0-20190728085453-a95533fccea3 // indirect
 	github.com/philchia/agollo/v4 v4.1.1
-	github.com/pkg/errors v0.8.1
+	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.5.1
 	github.com/prometheus/procfs v0.0.11 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20190728182440-6a916e37a237 // indirect
@@ -86,7 +86,7 @@ require (
 	golang.org/x/time v0.0.0-20191024005414-555d28b269f0 // indirect
 	golang.org/x/tools v0.0.0-20200723000907-a7c6fd066f6d // indirect
 	google.golang.org/appengine v1.6.1 // indirect
-	google.golang.org/genproto v0.0.0-20200402124713-8ff61da6d932
+	google.golang.org/genproto v0.0.0-20210322173543-5f0e89347f5a
 	google.golang.org/grpc v1.29.1
 	gopkg.in/cheggaaa/pb.v1 v1.0.25 // indirect
 	gopkg.in/go-playground/validator.v9 v9.29.1

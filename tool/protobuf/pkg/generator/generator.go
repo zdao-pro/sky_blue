@@ -15,16 +15,16 @@ import (
 	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
 	"github.com/pkg/errors"
 
-	"github.com/go-kratos/kratos/tool/protobuf/pkg/gen"
-	"github.com/go-kratos/kratos/tool/protobuf/pkg/naming"
-	"github.com/go-kratos/kratos/tool/protobuf/pkg/typemap"
-	"github.com/go-kratos/kratos/tool/protobuf/pkg/utils"
+	"github.com/zdao-pro/sky_blue/tool/protobuf/pkg/gen"
+	"github.com/zdao-pro/sky_blue/tool/protobuf/pkg/naming"
+	"github.com/zdao-pro/sky_blue/tool/protobuf/pkg/typemap"
+	"github.com/zdao-pro/sky_blue/tool/protobuf/pkg/utils"
 )
 
 const Version = "v0.1"
 
-var GoModuleImportPath = "github.com/go-kratos/kratos"
-var GoModuleDirName = "github.com/go-kratos/kratos"
+var GoModuleImportPath = "github.com/zdao-pro/sky_blue"
+var GoModuleDirName = "github.com/zdao-pro/sky_blue"
 
 type Base struct {
 	Reg *typemap.Registry

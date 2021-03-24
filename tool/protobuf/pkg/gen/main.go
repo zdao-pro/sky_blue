@@ -1,6 +1,7 @@
 package gen
 
 import (
+	"fmt"
 	"io"
 	"io/ioutil"
 	"log"
@@ -62,10 +63,12 @@ func readGenRequest() *plugin.CodeGeneratorRequest {
 func writeResponse(w io.Writer, resp *plugin.CodeGeneratorResponse) {
 	data, err := proto.Marshal(resp)
 	if err != nil {
+		fmt.Println("------------")
 		Error(err, "marshaling response")
 	}
 	_, err = w.Write(data)
 	if err != nil {
+		fmt.Println("+++++++++++++")
 		Error(err, "writing response")
 	}
 }
