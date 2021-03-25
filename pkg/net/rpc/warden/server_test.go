@@ -222,27 +222,27 @@ func Test_Warden(t *testing.T) {
 	if nil != err {
 		fmt.Println(err.Error())
 	}
-	server = NewServer(&ServerConfig{Addr: _testAddr, Timeout: time.Duration(time.Second)})
-	pb.RegisterGreeterServer(server.Server(), &helloServer{t})
-	server.Use(
-		func(ctx context.Context, req interface{}, args *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
-			outPut = append(outPut, "1")
-			resp, err := handler(ctx, req)
-			outPut = append(outPut, "2")
-			return resp, err
-		},
-		func(ctx context.Context, req interface{}, args *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
-			outPut = append(outPut, "3")
-			resp, err := handler(ctx, req)
-			outPut = append(outPut, "4")
-			return resp, err
-		})
-	if _, err := server.Start(); err != nil {
-		t.Fatal(err)
-	}
-	for {
+	// server = NewServer(&ServerConfig{Addr: _testAddr, Timeout: time.Duration(time.Second)})
+	// pb.RegisterGreeterServer(server.Server(), &helloServer{t})
+	// server.Use(
+	// 	func(ctx context.Context, req interface{}, args *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+	// 		outPut = append(outPut, "1")
+	// 		resp, err := handler(ctx, req)
+	// 		outPut = append(outPut, "2")
+	// 		return resp, err
+	// 	},
+	// 	func(ctx context.Context, req interface{}, args *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+	// 		outPut = append(outPut, "3")
+	// 		resp, err := handler(ctx, req)
+	// 		outPut = append(outPut, "4")
+	// 		return resp, err
+	// 	})
+	// if _, err := server.Start(); err != nil {
+	// 	t.Fatal(err)
+	// }
+	// for {
 
-	}
+	// }
 	// er := server.Run(_testAddr)
 	// if er != nil {
 	// 	fmt.Println("err:", er.Error())

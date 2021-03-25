@@ -2,14 +2,10 @@ package redis
 
 import (
 	"context"
-	"fmt"
 	"testing"
 	"time"
 
 	"github.com/zdao-pro/sky_blue/pkg/cache/redis"
-	"github.com/zdao-pro/sky_blue/pkg/log"
-	"github.com/zdao-pro/sky_blue/pkg/peach"
-	_ "github.com/zdao-pro/sky_blue/pkg/peach/apollo"
 )
 
 type testConfig struct {
@@ -39,24 +35,24 @@ type testConfig struct {
 }
 
 func TestApollo(t *testing.T) {
-	log.Init(nil)
-	peach.Init(peach.PeachDriverApollo, "zdao_backend.sky_blue")
-	var c redis.NewConfig
-	peach.Get("redis_test.yaml").UnmarshalYAML(&c)
-	fmt.Println(c)
-	// config := &redis.Config{
-	// 	Config: &pool.Config{
-	// 		Active: 10,
-	// 		Idle:   5,
-	// 	},
-	// 	Name:         "test_get",
-	// 	Proto:        "tcp",
-	// 	Addr:         "localhost:6379",
-	// 	DialTimeout:  time.Second,
-	// 	ReadTimeout:  time.Second,
-	// 	WriteTimeout: time.Second,
-	// }
-	r := redis.NewRedisClient(&c)
+	// var c redis.NewConfig
+	// peach.Get("db_redis_user_persist.yaml").UnmarshalYAML(&c)
+	// fmt.Println(c)
+	config := &redis.NewConfig{
+		Active:       10,
+		Idle:         5,
+		Name:         "test_get",
+		Proto:        "tcp",
+		Addr:         "r-bp1mwqdr5khc6uui7dpd.redis.rds.aliyuncs.com:6379",
+		DialTimeout:  time.Second,
+		ReadTimeout:  time.Second,
+		WriteTimeout: time.Second,
+		Auth:         "zhaodao_2020",
+	}
+	r := redis.NewRedisClient(config)
 	defer r.Close()
-	r.Do(context.Background(), 4, "SET", "a", "f")
+	_, err := r.Do(context.Background(), 4, "SET", "a", "f")
+	if err != nil {
+		t.Fatalf(err.Error())
+	}
 }
