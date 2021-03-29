@@ -218,34 +218,32 @@ func (r *Request) JSON() *Request {
 
 // Build query data
 func (r *Request) buildBody(d ...interface{}) (io.Reader, error) {
-	if r.method == "DELETE" || len(d) <= 1 || d[1] == nil {
+	if r.method == "DELETE" || len(d) < 2 {
 		return nil, nil
 	}
 
 	switch d[1].(type) {
 	case string:
-		return strings.NewReader(d[0].(string)), nil
+		return strings.NewReader(d[1].(string)), nil
 	case []byte:
-		return bytes.NewReader(d[0].([]byte)), nil
+		return bytes.NewReader(d[1].([]byte)), nil
 	case int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64:
-		return bytes.NewReader(IntByte(d[0])), nil
+		return bytes.NewReader(IntByte(d[1])), nil
 	case *bytes.Reader:
-		return d[0].(*bytes.Reader), nil
+		return d[1].(*bytes.Reader), nil
 	case *strings.Reader:
-		return d[0].(*strings.Reader), nil
+		return d[1].(*strings.Reader), nil
 	case *bytes.Buffer:
-		return d[0].(*bytes.Buffer), nil
+		return d[1].(*bytes.Buffer), nil
 	default:
-		if r.isJson() {
-			b, err := json.Marshal(d[0])
-			if err != nil {
-				return nil, err
-			}
-			return bytes.NewReader(b), nil
+		b, err := json.Marshal(d[1])
+		if err != nil {
+			return nil, err
 		}
+		return bytes.NewReader(b), nil
 	}
 
-	t := reflect.TypeOf(d[0]).String()
+	t := reflect.TypeOf(d[1]).String()
 	if !strings.Contains(t, "map[string]interface") {
 		return nil, errors.New("Unsupported data type.")
 	}

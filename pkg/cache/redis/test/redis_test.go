@@ -1,9 +1,15 @@
 package redis
 
 import (
+	"bytes"
 	"context"
+	"fmt"
+	"strings"
 	"testing"
 	"time"
+	"unicode/utf8"
+
+	"bufio"
 
 	"github.com/zdao-pro/sky_blue/pkg/cache/redis"
 )
@@ -55,4 +61,60 @@ func TestApollo(t *testing.T) {
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
+}
+
+func TestIn(t *testing.T) {
+	nums := []int{1, 2, 3, 4, 5}
+	fmt.Println("     len cap   address")
+	fmt.Print("111---", len(nums), cap(nums))
+	fmt.Printf("    %p\n", nums) //0xc4200181e0
+	a := nums[:3]
+	fmt.Print("222---", len(a), cap(a))
+	fmt.Printf("    %p\n", a) //0xc4200181e0 一样
+	//output: 222--- 3 5
+
+	var b = make([]int, 3)
+	// b := nums[:3:3]          //第二个冒号 设置cap的
+	n := copy(b, nums[:3:3]) //第二个冒号 设置cap的
+	fmt.Print("333---", len(b), cap(b))
+	fmt.Printf("    %p\n", b) //0xc4200181e0 一样
+	//output: 333--- 3 3
+	fmt.Println(n, b)
+	nums[0] = 55
+	a[0] = 9
+	fmt.Println(nums, a, b)
+}
+
+func TestByte(t *testing.T) {
+	b := make([]byte, 3, 5)
+	fmt.Println(b, " ptr:", &b[0])
+	b = b[:4]
+	fmt.Println(b, " ptr:", &b[0])
+}
+
+func TestRune(t *testing.T) {
+	var str = "hello 你好"
+
+	//golang中string底层是通过byte数组实现的，座椅直接求len 实际是在按字节长度计算  所以一个汉字占3个字节算了3个长度
+	fmt.Println("len(str):", len(str))
+
+	//以下两种都可以得到str的字符串长度
+
+	//golang中的unicode/utf8包提供了用utf-8获取长度的方法
+	fmt.Println("RuneCountInString:", utf8.RuneCountInString(str))
+
+	//通过rune类型处理unicode字符
+	fmt.Println("rune:", len([]rune(str)))
+}
+
+func TestBufIo(t *testing.T) {
+	var str = "irhquihrqr$wriqrqirh$hqrhqu"
+	b := bufio.NewReader(strings.NewReader(str))
+	s, err := b.ReadSlice(byte('$'))
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(string(s))
+	i := bytes.IndexByte([]byte(str), byte('$'))
+	fmt.Println(string([]byte(str)[0:i+1]), " i:", i)
 }

@@ -60,7 +60,7 @@ func parseField(v reflect.Type) map[string]Field {
 
 		f := Field{}
 
-		if k, ok := field.Tag.Lookup("orm"); ok {
+		if k, ok := field.Tag.Lookup("json"); ok {
 			f.Name = k
 		} else {
 			f.Name = field.Name
