@@ -2,6 +2,7 @@ package sql
 
 import (
 	"reflect"
+	"strings"
 	"time"
 )
 
@@ -61,7 +62,8 @@ func parseField(v reflect.Type) map[string]Field {
 		f := Field{}
 
 		if k, ok := field.Tag.Lookup("json"); ok {
-			f.Name = k
+			list := strings.Split(k, ",")
+			f.Name = list[0]
 		} else {
 			f.Name = field.Name
 		}
