@@ -2,6 +2,7 @@ package sql
 
 import (
 	"reflect"
+	"strings"
 	"time"
 )
 
