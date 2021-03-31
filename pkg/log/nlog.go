@@ -6,19 +6,13 @@ import (
 	"net"
 )
 
-var arrUDPConn = [6]*net.UDPConn{}
-
 type nlog struct {
-	infoUDPCon  *net.UDPConn
-	debugUDPCon *net.UDPConn
-	fetalUDPCon *net.UDPConn
-	errorUDPCon *net.UDPConn
-	warnUDPCon  *net.UDPConn
-	render      Render
+	render         Render
+	arrUDPConnList []*net.UDPConn
 }
 
 func newNlogHnadle(udpAddr, port string) Handle {
-
+	var arrUDPConn = make([]*net.UDPConn, 6, 6)
 	svrUDPAddr, err := net.ResolveUDPAddr("udp4", fmt.Sprintf("%s:%s", udpAddr, port))
 	if err != nil {
 		panic(err)
@@ -66,13 +60,14 @@ func newNlogHnadle(udpAddr, port string) Handle {
 	}
 	arrUDPConn[_accessLevel] = accessConn
 	return nlog{
-		render: newPatternRender(),
+		arrUDPConnList: arrUDPConn,
+		render:         newPatternRender(),
 	}
 }
 
 //Log ...
 func (st nlog) Log(ctx context.Context, l Level, d ...D) {
-	u := arrUDPConn[l]
+	u := st.arrUDPConnList[l]
 	st.render.Render(u, d...)
 }
 
